@@ -12,9 +12,16 @@ namespace FingerSearchTree
 {
     public partial class Form1 : Form
     {
+        private Tree tree_;
+
         public Form1()
         {
             InitializeComponent();
+        }
+
+        private void createBtn__Click(object sender, EventArgs e)
+        {
+            tree_ = new Tree();
         }
     }
 }

@@ -18,6 +18,13 @@ namespace GroupAndComponent
 
         public Component Right { get; set; }
 
-        public int Degree { get; set; }
+        public int Degree { get; set; } = 0;
+
+        public Component(Node root)
+        {
+            Root = root;
+            Valid = true;
+            Degree++;
+        }
     }
 }

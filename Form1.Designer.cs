@@ -29,13 +29,34 @@ namespace FingerSearchTree
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            this.createBtn_ = new System.Windows.Forms.Button();
+            this.SuspendLayout();
+            // 
+            // createBtn_
+            // 
+            this.createBtn_.Location = new System.Drawing.Point(89, 42);
+            this.createBtn_.Name = "createBtn_";
+            this.createBtn_.Size = new System.Drawing.Size(75, 23);
+            this.createBtn_.TabIndex = 0;
+            this.createBtn_.Text = "Create";
+            this.createBtn_.UseVisualStyleBackColor = true;
+            this.createBtn_.Click += new System.EventHandler(this.createBtn__Click);
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.createBtn_);
+            this.Name = "Form1";
             this.Text = "Form1";
+            this.ResumeLayout(false);
+
         }
 
         #endregion
+
+        private System.Windows.Forms.Button createBtn_;
     }
 }
 

@@ -22,6 +22,13 @@ namespace Blocks
 
         public Block2 Right { get; set; }
 
-        public int Degree { get; set; }
+        public int Degree { get => nodes_.Count; }
+
+        private List<Node> nodes_ = new List<Node>();
+
+        public Block1(Node node)
+        {
+            nodes_.Add(node);
+        }
     }
 }

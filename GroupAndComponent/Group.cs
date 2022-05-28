@@ -27,6 +27,14 @@ namespace GroupAndComponent
 
         public Group Right { get; set; }
 
-        public int Degree { get; set; }
+        public int Degree { get => nodes_.Count; }
+
+        private List<Node> nodes_ = new List<Node>();
+
+        public Group(Node node)
+        {
+            Valid = true;
+            nodes_.Add(node);
+        }
     }
 }

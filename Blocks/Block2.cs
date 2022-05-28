@@ -23,6 +23,14 @@ namespace Blocks
 
         public Block2 Right { get; set; }
 
-        public int Degree { get; set; }
+        public int Degree { get => children_.Sum(element => element.Degree); }
+
+        private List<Block1> children_ = new List<Block1>();
+
+        public Block2(Block1 child)
+        {
+            children_.Add(child);
+            Pending = false;
+        }
     }
 }
