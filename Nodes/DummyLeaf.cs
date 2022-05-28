@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FingerSearchTree;
 
-namespace FingerSearchTree.Nodes
+namespace Nodes
 {
-    class DummyLeaf
+    public class DummyLeaf: Node
     {
+        public int Value { get; set; } = int.MinValue;
     }
 }
