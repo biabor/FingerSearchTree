@@ -17,5 +17,20 @@ namespace Nodes
         {
             Value = int.MinValue;
         }
+
+        internal override int GetMin()
+        {
+            return Value;
+        }
+
+        internal override int GetMax()
+        {
+            return Value;
+        }
+
+        internal override bool ContainsElement(int searchedValue)
+        {
+            return Value == searchedValue;
+        }
     }
 }

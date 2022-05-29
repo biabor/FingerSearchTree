@@ -23,5 +23,11 @@ namespace FingerSearchTree
         {
             tree_ = new Tree();
         }
+
+        private void searchBtn__Click(object sender, EventArgs e)
+        {
+            //tree_.Search(int.MinValue);
+            tree_.Search(5);
+        }
     }
 }
