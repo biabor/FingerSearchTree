@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FingerSearchTree;
 using Nodes;
+using GroupAndComponent;
 
 namespace Blocks
 {
@@ -20,15 +21,26 @@ namespace Blocks
 
         public Block1 Left { get; set; }
 
-        public Block2 Right { get; set; }
+        public Block1 Right { get; set; }
 
         public int Degree { get => nodes_.Count; }
 
+        public bool IsFull { get => Degree >= 3; }
+
         private List<Node> nodes_ = new List<Node>();
+
+        public Block1(Block1 mate)
+        {
+            Mate = mate;
+        }
 
         public Block1(Node node)
         {
             nodes_.Add(node);
+            node.Father = this;
+            Mate = new Block1(this);
+            Right = Mate;
+            Mate.Left = this;
         }
 
         public Node FistNode()
@@ -41,7 +53,7 @@ namespace Blocks
         public Node LastNode()
         {
             if (nodes_.Count == 0)
-                return null;
+                return Left.LastNode();
             return nodes_[nodes_.Count - 1];
         }
 
@@ -71,6 +83,90 @@ namespace Blocks
 
             isBigger = false;
             return null;
+        }
+
+        public void Add(Node e, Node eP)
+        {
+            // find position to insert.
+            int positionEP = 0;
+            for (; positionEP < nodes_.Count; positionEP++)
+            {
+                if (nodes_[positionEP] == e)
+                {
+                    break;
+                }
+            }
+            positionEP++;
+
+            // actually insert in the list.
+            nodes_.Insert(positionEP, eP);
+            eP.Father = this;
+
+            // Make sure the left/right pointers are set correctly.
+            Node aux = e.Right;
+            e.Right = eP;
+            eP.Left = e;
+            e.Group.Right = eP.Group;
+            eP.Group.Left = e.Group;
+
+            if (aux != null)
+            {
+                eP.Right = aux;
+                aux.Left = eP;
+                eP.Group.Right = aux.Group;
+                aux.Group.Left = eP.Group;
+            }
+
+            if (Degree > 3)
+            {
+                if (Mate == Right)
+                {
+                    Mate.Transfer(nodes_[nodes_.Count - 1], true);
+                    nodes_.RemoveAt(nodes_.Count - 1);
+                }
+                else
+                {
+                    Mate.Transfer(nodes_[0], false);
+                    nodes_.RemoveAt(0);
+                }
+            }
+
+            if (IsFull && Mate != null && Mate.IsFull)
+            {
+                if (Mate == Right)
+                {
+                    Block1 oldMate = Mate;
+
+                    Mate = new Block1(this);
+                    Father.Add(this, Mate);
+
+                    Block1 oldMateRightNew = new Block1(oldMate);
+                    Father.Add(oldMate, oldMateRightNew);
+                }
+                else
+                {
+                    Block1 oldMate = Mate;
+
+                    Mate = new Block1(this);
+                    Father.Add(this, Mate);
+
+                    oldMate.Mate = new Block1(oldMate);
+                    Father.Add(oldMate, oldMate.Mate);
+                }
+            }
+        }
+
+        public void Transfer(Node node, bool atStart)
+        {
+            if (atStart)
+            {
+                nodes_.Insert(0, node);
+            }
+            else
+            {
+                nodes_.Insert(nodes_.Count, node);
+            }
+            node.Father = this;
         }
     }
 }

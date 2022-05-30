@@ -27,10 +27,21 @@ namespace Blocks
 
         private List<Block1> children_ = new List<Block1>();
 
+        public Block2(Block2 mate)
+        {
+            Mate = mate;
+            Left = mate;
+        }
+
         public Block2(Block1 child)
         {
             children_.Add(child);
+            children_.Add(child.Mate);
+            child.Father = this;
+            child.Mate.Father = this;
             Pending = false;
+            Mate = new Block2(this);
+            Right = Mate;
         }
 
         public Block1 FirstBlock1()
@@ -43,7 +54,7 @@ namespace Blocks
         public Block1 LastBlock1()
         {
             if (children_.Count == 0)
-                return null;
+                return Left.LastBlock1();
             return children_[children_.Count - 1];
         }
 
@@ -79,6 +90,40 @@ namespace Blocks
 
             biggerFound = false;
             return null;
+        }
+
+        public void Add(Block1 e, Block1 eP)
+        {
+            // find position to insert.
+            int positionEP = 0;
+            for(; positionEP < children_.Count; positionEP ++)
+            {
+                if(children_[positionEP] == e)
+                {
+                    break;
+                }
+            }
+            positionEP++;
+
+            // actually insert in the list.
+            children_.Insert(positionEP, eP);
+            eP.Father = this;
+
+            // Make sure the left/right pointers are set correctly.
+            Block1 aux = e.Right;
+            e.Right = eP;
+            eP.Left = e;
+
+            if (aux != null)
+            {
+                eP.Right = aux;
+                aux.Left = eP;
+            }
+
+            if(children_.Count > 4)
+            {
+
+            }
         }
     }
 }

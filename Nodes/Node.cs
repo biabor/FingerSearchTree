@@ -40,7 +40,6 @@ namespace Nodes
             group.Comp = comp;
             group.Block2 = block2;
 
-            block1.Father = block2;
             block1.OldNode = fatherNode;
             block1.NewNode = fatherNode;
 
@@ -50,7 +49,6 @@ namespace Nodes
             Comp = comp;
             NewNode = false;
             Group = group;
-            Father = block1;
         }
 
         internal Node FindChildNodeContaining(int searchValue)
@@ -79,10 +77,7 @@ namespace Nodes
                 }
             }
 
-            if (block2s_.Count != 0)
-                return block2s_[block2s_.Count - 1].LastBlock1().LastNode();
-
-            return null;
+            return block2s_[block2s_.Count - 1].LastBlock1().LastNode();
         }
 
         internal virtual bool ContainsElement(int searchValue)
@@ -141,6 +136,19 @@ namespace Nodes
             Group = group;
 
             block2s_.Add(block2);
+            block2s_.Add(block2.Mate);
+        }
+
+        public Node(int value) 
+        {
+            Component comp = new Component(this);
+            Group group = new Group(this);
+
+            group.Comp = comp;
+
+            Comp = comp;
+            NewNode = false;
+            Group = group;
         }
     }
 }

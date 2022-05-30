@@ -14,9 +14,9 @@ namespace GroupAndComponent
 
         public Node Root { get; set; }
 
-        public Component Left { get; set; }
+        //public Component Left { get; set; }
 
-        public Component Right { get; set; }
+        //public Component Right { get; set; }
 
         public int Degree { get; set; } = 0;
 

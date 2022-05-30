@@ -32,5 +32,10 @@ namespace Nodes
         {
             return Value == searchedValue;
         }
+
+        public DummyLeaf(int value) : base(value)
+        {
+            Value = value;
+        }
     }
 }

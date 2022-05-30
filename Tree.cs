@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GroupAndComponent;
+using Blocks;
 using Nodes;
 
 namespace FingerSearchTree
@@ -36,11 +37,11 @@ namespace FingerSearchTree
             while (temp.ContainsElement(searchValue) == false)
             {
                 // Try searching the node to the right.
-                if (temp.Left != null && temp.Right.ContainsElement(searchValue))
+                if (temp.Left != null && temp.Left.ContainsElement(searchValue))
                     temp = temp.Left;
 
                 // Try searching the node to the left.
-                if (temp.Right != null && temp.Left.ContainsElement(searchValue))
+                if (temp.Right != null && temp.Right.ContainsElement(searchValue))
                     temp = temp.Right;
 
                 //Go to the ancestor.
@@ -58,6 +59,24 @@ namespace FingerSearchTree
             }
 
             return temp as DummyLeaf;
+        }
+
+        public void Add(int addValue)
+        {
+            dummyLeaf_ = Search(dummyLeaf_, addValue);
+            if(dummyLeaf_.Value < addValue)
+                 dummyLeaf_ = Insert(dummyLeaf_, addValue);
+        }
+
+        private DummyLeaf Insert(DummyLeaf dummyLeaf_, int addValue)
+        {
+            // InsertLeaf.
+            DummyLeaf lP = new DummyLeaf(addValue);
+            Block1 father = dummyLeaf_.Father;
+            father.Add(dummyLeaf_, lP);
+            lP.Group.Block2 = lP.Father.Father;
+
+            return lP;
         }
     }
 }

@@ -31,6 +31,7 @@ namespace FingerSearchTree
         {
             this.createBtn_ = new System.Windows.Forms.Button();
             this.searchBtn_ = new System.Windows.Forms.Button();
+            this.addBtn_ = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // createBtn_
@@ -53,11 +54,22 @@ namespace FingerSearchTree
             this.searchBtn_.UseVisualStyleBackColor = true;
             this.searchBtn_.Click += new System.EventHandler(this.searchBtn__Click);
             // 
+            // addBtn_
+            // 
+            this.addBtn_.Location = new System.Drawing.Point(429, 41);
+            this.addBtn_.Name = "addBtn_";
+            this.addBtn_.Size = new System.Drawing.Size(75, 23);
+            this.addBtn_.TabIndex = 2;
+            this.addBtn_.Text = "Add";
+            this.addBtn_.UseVisualStyleBackColor = true;
+            this.addBtn_.Click += new System.EventHandler(this.addBtn__Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.addBtn_);
             this.Controls.Add(this.searchBtn_);
             this.Controls.Add(this.createBtn_);
             this.Name = "Form1";
@@ -70,6 +82,7 @@ namespace FingerSearchTree
 
         private System.Windows.Forms.Button createBtn_;
         private System.Windows.Forms.Button searchBtn_;
+        private System.Windows.Forms.Button addBtn_;
     }
 }
 
