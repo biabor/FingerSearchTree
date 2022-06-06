@@ -40,11 +40,8 @@ namespace Nodes
             group.Comp = comp;
             group.Block2 = block2;
 
-            block1.OldNode = fatherNode;
-            block1.NewNode = fatherNode;
-
-            block2.Group = fatherNode.Group;
             block2.Node = fatherNode;
+            block2.Mate.Node = fatherNode;
 
             Comp = comp;
             NewNode = false;
@@ -113,7 +110,7 @@ namespace Nodes
             if (block2s_.Count == 0)
                 return int.MaxValue;
 
-            return block2s_[0].FirstBlock1().FistNode().GetMin();
+            return block2s_[0].FirstBlock1().FirstNode().GetMin();
         }
 
         internal virtual int GetMax()
@@ -137,6 +134,36 @@ namespace Nodes
 
             block2s_.Add(block2);
             block2s_.Add(block2.Mate);
+            block2.Mate.Node = this;
+        }
+
+        internal void Add(Block2 e, Block2 eP)
+        {
+            // find position to insert.
+            int positionEP = 0;
+            for (; positionEP < block2s_.Count; positionEP++)
+            {
+                if (block2s_[positionEP] == e)
+                {
+                    break;
+                }
+            }
+            positionEP++;
+
+            // actually insert in the list.
+            block2s_.Insert(positionEP, eP);
+            eP.Node = this;
+
+            // Make sure the left/right pointers are set correctly.
+            Block2 aux = e.Right;
+            e.Right = eP;
+            eP.Left = e;
+
+            if (aux != null)
+            {
+                eP.Right = aux;
+                aux.Left = eP;
+            }
         }
 
         public Node(int value) 

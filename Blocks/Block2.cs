@@ -11,7 +11,7 @@ namespace Blocks
 {
     public class Block2
     {
-        public Group Group { get; set; }
+        public Group Group { get => Node.Group; }
 
         public Block2 Mate { get; set; }
 
@@ -25,12 +25,13 @@ namespace Blocks
 
         public int Degree { get => children_.Sum(element => element.Degree); }
 
+        public bool IsFull { get => children_.Count >= 6; }
+
         private List<Block1> children_ = new List<Block1>();
 
         public Block2(Block2 mate)
         {
             Mate = mate;
-            Left = mate;
         }
 
         public Block2(Block1 child)
@@ -42,6 +43,7 @@ namespace Blocks
             Pending = false;
             Mate = new Block2(this);
             Right = Mate;
+            Mate.Left = this;
         }
 
         public Block1 FirstBlock1()
@@ -94,11 +96,25 @@ namespace Blocks
 
         public void Add(Block1 e, Block1 eP)
         {
+            if (IsFull && Mate != null && Mate.IsFull)
+            {
+                if (Invariant5Holds())
+                {
+                    Block2 oldMate = Mate;
+
+                    Mate = new Block2(this);
+                    Node.Add(this, Mate);
+
+                    oldMate.Mate = new Block2(oldMate);
+                    oldMate.Node.Add(oldMate, oldMate.Mate);
+                }
+            }
+
             // find position to insert.
             int positionEP = 0;
-            for(; positionEP < children_.Count; positionEP ++)
+            for (; positionEP < children_.Count; positionEP++)
             {
-                if(children_[positionEP] == e)
+                if (children_[positionEP] == e)
                 {
                     break;
                 }
@@ -120,10 +136,45 @@ namespace Blocks
                 aux.Left = eP;
             }
 
-            if(children_.Count > 4)
+            if (children_.Count > 6)
             {
-
+                if (Mate == Right)
+                {
+                    Block1 toBeTransferred = children_[children_.Count - 1];
+                    Mate.Transfer(toBeTransferred, true);
+                    children_.Remove(toBeTransferred);
+                }
+                else
+                {
+                    Block1 toBeTransferred = children_[0];
+                    Mate.Transfer(toBeTransferred, false);
+                    children_.Remove(toBeTransferred);
+                }
             }
+        }
+
+        private bool Invariant5Holds()
+        {
+            if (FirstBlock1().Left != null && FirstBlock1().FirstNode().Group == FirstBlock1().Left.LastNode().Group)
+                return false;
+
+            if (LastBlock1().Right != null && LastBlock1().LastNode().Group == LastBlock1().Right.FirstNode().Group)
+                return false;
+            return true;
+        }
+
+        public void Transfer(Block1 block1, bool atStart)
+        {
+            if (atStart)
+            {
+                children_.Insert(0, block1);
+            }
+            else
+            {
+                children_.Insert(children_.Count, block1);
+            }
+
+            block1.Father = this;
         }
     }
 }

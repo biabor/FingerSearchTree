@@ -43,7 +43,7 @@ namespace Blocks
             Mate.Left = this;
         }
 
-        public Node FistNode()
+        public Node FirstNode()
         {
             if (nodes_.Count == 0)
                 return null;
@@ -87,6 +87,17 @@ namespace Blocks
 
         public void Add(Node e, Node eP)
         {
+            if (IsFull && Mate != null && Mate.IsFull)
+            {
+                Block1 oldMate = Mate;
+
+                Mate = new Block1(this);
+                Father.Add(this, Mate);
+
+                oldMate.Mate = new Block1(oldMate);
+                oldMate.Father.Add(oldMate, oldMate.Mate);
+            }
+
             // find position to insert.
             int positionEP = 0;
             for (; positionEP < nodes_.Count; positionEP++)
@@ -128,30 +139,6 @@ namespace Blocks
                 {
                     Mate.Transfer(nodes_[0], false);
                     nodes_.RemoveAt(0);
-                }
-            }
-
-            if (IsFull && Mate != null && Mate.IsFull)
-            {
-                if (Mate == Right)
-                {
-                    Block1 oldMate = Mate;
-
-                    Mate = new Block1(this);
-                    Father.Add(this, Mate);
-
-                    Block1 oldMateRightNew = new Block1(oldMate);
-                    Father.Add(oldMate, oldMateRightNew);
-                }
-                else
-                {
-                    Block1 oldMate = Mate;
-
-                    Mate = new Block1(this);
-                    Father.Add(this, Mate);
-
-                    oldMate.Mate = new Block1(oldMate);
-                    Father.Add(oldMate, oldMate.Mate);
                 }
             }
         }
