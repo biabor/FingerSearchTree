@@ -15,6 +15,8 @@ namespace Nodes
 
         public Block1 Father { get; set; }
 
+        public Node FatherNode { get => (Father == null || Father.Father == null || Father.Father.Node == null) ? null : Father.Father.Node; }
+
         public Component Comp { get; set; }
 
         public bool NewNode { get; set; } //IsUnderConstruction
@@ -82,7 +84,7 @@ namespace Nodes
             try
             {
                 // if it is the root, that we assume that the root can contain all elements.
-                if (Father == null || Father.Father == null || Father.Father.Node == null)
+                if (FatherNode == null)
                     return true;
 
                 // if it has no children it is a leaf, but this should never happen here. just double checking.
@@ -92,7 +94,7 @@ namespace Nodes
                 // if the searchValue is smaller then the minimal Value contained in the subtree rooted at this node, then it means that the node does not contain the value.
                 if (searchValue < GetMin())
                     return false;
-                
+
                 // if the searchValue is bigger then the maximal Value contained in the subtree rooted at this node, then it means that the node does not contain the value.
                 if (GetMax() > searchValue)
                     return false;
@@ -166,7 +168,7 @@ namespace Nodes
             }
         }
 
-        public Node(int value) 
+        public Node(int value)
         {
             Component comp = new Component(this);
             Group group = new Group(this);

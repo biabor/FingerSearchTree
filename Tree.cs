@@ -45,8 +45,8 @@ namespace FingerSearchTree
                     temp = temp.Right;
 
                 //Go to the ancestor.
-                if (temp.Father != null && temp.Father.Father != null && temp.Father.Father.Node != null)
-                    temp = temp.Father.Father.Node;
+                if (temp.FatherNode != null)
+                    temp = temp.FatherNode;
                 else
                     break;
             }
@@ -72,11 +72,22 @@ namespace FingerSearchTree
         {
             // InsertLeaf.
             DummyLeaf lP = new DummyLeaf(addValue);
+
+            Node f = dummyLeaf_.FatherNode;
+            if (f != null)
+            {
+                InsertLeaf(dummyLeaf_, lP);
+                Group fGroup = f.Group;
+                //Node r = f.Comp.Find();
+            }
+            return lP;
+        }
+
+        private void InsertLeaf(DummyLeaf dummyLeaf_, DummyLeaf lP)
+        {
             Block1 father = dummyLeaf_.Father;
             father.Add(dummyLeaf_, lP);
             lP.Group.Block2 = lP.Father.Father;
-
-            return lP;
         }
     }
 }
