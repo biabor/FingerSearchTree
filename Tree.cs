@@ -1,93 +1,150 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GroupAndComponent;
-using Blocks;
+﻿using GroupAndComponent;
 using Nodes;
 
 namespace FingerSearchTree
 {
-    class Tree
+    public static class Tree
     {
-        private DummyLeaf dummyLeaf_;
-
-        public Tree()
+        public static Leaf CreateList()
         {
-            dummyLeaf_ = CreateList();
+            return new Leaf();
         }
 
-        public DummyLeaf CreateList()
+        public static Leaf Insert(Leaf left, int value)
         {
-            return new DummyLeaf();
-        }
+            Leaf right = new Leaf(value);
+            InsertLeaf(left, right);
 
-        public void Search(int searchValue)
-        {
-            dummyLeaf_ = Search(dummyLeaf_, searchValue);
-        }
+            Group f = right.FatherNode.Group;
+            f.IsSplitGroup = true;
 
-        private DummyLeaf Search(DummyLeaf startingFinger, int searchValue)
-        {
-            // start at the given finger.
-            Node temp = startingFinger;
+            Group r = Find(f, right.FatherNode);
 
-            //as long as the element is not found and we are not at the root of the while tree.
-            while (temp.ContainsElement(searchValue) == false)
+
+            MultiBreak(r);
+
+            Node u = r.Block2.Node;
+            if (u.Blocks2.Count >= 4)
             {
-                // Try searching the node to the right.
-                if (temp.Left != null && temp.Left.ContainsElement(searchValue))
-                    temp = temp.Left;
+                Node uP = Split(u);
 
-                // Try searching the node to the left.
-                if (temp.Right != null && temp.Right.ContainsElement(searchValue))
-                    temp = temp.Right;
+                //Node z = Find(right.FatherNode);
+                //Break(z);
 
-                //Go to the ancestor.
-                if (temp.FatherNode != null)
-                    temp = temp.FatherNode;
-                else
-                    break;
+                //List<Node> zNodes = MultiSplit(z);
+                //Node y = Find(z.FatherNode);
+
+                //foreach (Node u in zNodes)
+                //    Add(u, y);
+            }
+            return right;
+        }
+
+        private static Node Split(Node u)
+        {
+            Node uP = new Node();
+            GAdd(uP, u.Group);
+            return uP;
+        }
+
+        /// <summary>
+        /// Finds the root group of the component containing the group f, which in itself contains node node
+        /// </summary>
+        /// <param name="f">group </param>
+        /// <param name="node">node</param>
+        /// <returns>oot group of the component containing the group f</returns>
+        private static Group Find(Group f, Node node)
+        {
+            if (f.Valid && f.Component.Valid)
+                return f.Component.Root;
+
+            if (f.Valid)
+            {
+                f.Component = new Component(f);
+                return f;
             }
 
-            // While the searched node is not a finger.
-            while(temp is DummyLeaf == false)
+            // TODO: understand better this part. Page 28-29 
+            node.Group = new Group(node);
+            return node.Group;
+        }
+
+        /// <summary>
+        /// Adds node v to the group G.
+        /// </summary>
+        /// <param name="v">Node to be added</param>
+        /// <param name="G">Group to be added in.</param>
+        private static void GAdd(Node v, Group G)
+        {
+            G.Nodes.Add(v);
+            v.Group = G;
+            v.IsUnderContruction = true;
+        }
+
+        private static void MultiBreak(Group G)
+        {
+            G.Valid = false;
+            if (G.IsSplitGroup)
             {
-                // Search for the child that contains the element.
-                temp = temp.FindChildNodeContaining(searchValue);
+                G.Component.Valid = false;
             }
-
-            return temp as DummyLeaf;
         }
 
-        public void Add(int addValue)
+        /// <summary>
+        /// Inserts the right leaf to the right of the left one in the parent of the left one.
+        /// </summary>
+        /// <param name="left">the left leaf.</param>
+        /// <param name="right">the right leaf.</param>
+        private static void InsertLeaf(Leaf left, Leaf right)
         {
-            dummyLeaf_ = Search(dummyLeaf_, addValue);
-            if(dummyLeaf_.Value < addValue)
-                 dummyLeaf_ = Insert(dummyLeaf_, addValue);
+            left.Father.Add(left, right);
+            right.Group.Block2 = right.Father.Father;
         }
 
-        private DummyLeaf Insert(DummyLeaf dummyLeaf_, int addValue)
-        {
-            // InsertLeaf.
-            DummyLeaf lP = new DummyLeaf(addValue);
+        ///// <summary>
+        ///// Adds node u, which is a singleton component, in the component with handle y.
+        ///// It is assumed that y is the handle of the valid component of father(u).
+        ///// </summary>
+        ///// <param name="u">Node to change its component</param>
+        ///// <param name="y">Handle of the father(u) component.</param>
+        //private static void Add(Node u, Node y)
+        //{
+        //    Component component = y.Component;
 
-            Node f = dummyLeaf_.FatherNode;
-            if (f != null)
-            {
-                InsertLeaf(dummyLeaf_, lP);
-                Group fGroup = f.Group;
-                //Node r = f.Comp.Find();
-            }
-            return lP;
-        }
+        //    u.Component = component;
+        //    component.Nodes.Add(u);
+        //}
 
-        private void InsertLeaf(DummyLeaf dummyLeaf_, DummyLeaf lP)
-        {
-            Block1 father = dummyLeaf_.Father;
-            father.Add(dummyLeaf_, lP);
-            lP.Group.Block2 = lP.Father.Father;
-        }
+        //private static List<Node> MultiSplit(Node z)
+        //{
+        //    return new List<Node>() { z }; // TODO 
+        //}
+
+        ///// <summary>
+        ///// Breaks the component in which the node is.
+        ///// </summary>
+        ///// <param name="z">the node of which component to break</param>
+        //private static void Break(Node z)
+        //{
+        //    z.Component.Valid = false;
+        //}
+
+        ///// <summary>
+        ///// Component method: finds the root of the component containing the given node.
+        ///// </summary>
+        ///// <param name="node">Node of which the component root is found.</param>
+        ///// <returns>the component root</returns>
+        //private static Node Find(Node node)
+        //{
+        //    Component component = node.Component;
+
+        //    if (component.Valid)
+        //        return component.Root;
+
+        //    component.Nodes.Remove(node);
+        //    node.Component = new Component(node);
+        //    return node;
+
+        //}
     }
 }

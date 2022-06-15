@@ -56,7 +56,7 @@
     </Compile>
     <Compile Include="GroupAndComponent\Component.cs" />
     <Compile Include="GroupAndComponent\Group.cs" />
-    <Compile Include="Nodes\DummyLeaf.cs" />
+    <Compile Include="Nodes\Leaf.cs" />
     <Compile Include="Nodes\Node.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

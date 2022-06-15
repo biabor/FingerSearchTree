@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FingerSearchTree;
 using GroupAndComponent;
 using Blocks;
 
@@ -11,173 +7,76 @@ namespace Nodes
 {
     public class Node
     {
-        public Group Group { get; set; }
+        public bool IsUnderContruction { get; set; } = false;
 
-        public Block1 Father { get; set; }
+        public int Level { get; set; } = 0;
 
-        public Node FatherNode { get => (Father == null || Father.Father == null || Father.Father.Node == null) ? null : Father.Father.Node; }
+        public long Bi { get => (long)/*Math.Pow(2, */Math.Pow(2, 2 * Level + 4)/*)*/; }
 
-        public Component Comp { get; set; }
+        public long BiP { get => (long) /*Math.Pow(2,*/ Math.Pow(2, 2 * Level + 3) - 2/*)*/; } //Bi'
 
-        public bool NewNode { get; set; } //IsUnderConstruction
+        public long Ai { get => (long)/*Math.Pow(2, */Math.Pow(2, 2 * Level)/*)*/; }
 
-        public Node Left { get; set; }
+        public long Fi { get => (long)/*Math.Pow(2, */Math.Pow(2, 2 * Level + 1)/*)*/; }
 
-        public Node Right { get; set; }
+        public long Ri { get => Bi / BiP; }
 
-        public int Degree { get => block2s_.Sum(element => element.Degree); }
+        public Node Left { get; set; } = null;
 
-        private List<Block2> block2s_ = new List<Block2>();
+        public Node Right { get; set; } = null;
 
-        public Node()
-        {
-            Component comp = new Component(this);
-            Group group = new Group(this);
+        public Node FatherNode { get => Father == null || Father.Father == null || Father.Father.Node == null ? null : Father.Father.Node; }
 
-            Block1 block1 = new Block1(this);
-            Block2 block2 = new Block2(block1);
+        public List<Block2> Blocks2 = new List<Block2>();
 
-            Node fatherNode = new Node(block2);
+        public Block1 Father { get; set; } = null;
 
-            group.Comp = comp;
-            group.Block2 = block2;
+        public Group Group { get; set; } = null;
 
-            block2.Node = fatherNode;
-            block2.Mate.Node = fatherNode;
+        public Node() { }
 
-            Comp = comp;
-            NewNode = false;
-            Group = group;
-        }
-
-        internal Node FindChildNodeContaining(int searchValue)
-        {
-            // we go through all blocks2
-            for (int index = 0; index < block2s_.Count(); index++)
-            {
-                Block2 block2 = block2s_[index];
-                //if this the max value contained in this one is smaller, we can skip it.
-                if (block2.LastBlock1().LastNode().GetMax() < searchValue)
-                    continue;
-
-                // seach in all blocks1 of this block2 for the node.
-                Node node = block2.GetNodeContaining(searchValue, out bool bigger);
-
-                //if the node is found then return it.
-                if (node != null)
-                    return node;
-                // if the node is not found, but a bigger node is, then we return the last node from the previous one.
-                else if (bigger)
-                {
-                    if (index == 0)
-                        break;
-                    else
-                        return block2s_[index - 1].LastBlock1().LastNode();
-                }
-            }
-
-            return block2s_[block2s_.Count - 1].LastBlock1().LastNode();
-        }
-
-        internal virtual bool ContainsElement(int searchValue)
-        {
-            try
-            {
-                // if it is the root, that we assume that the root can contain all elements.
-                if (FatherNode == null)
-                    return true;
-
-                // if it has no children it is a leaf, but this should never happen here. just double checking.
-                if (block2s_.Count == 0)
-                    return false;
-
-                // if the searchValue is smaller then the minimal Value contained in the subtree rooted at this node, then it means that the node does not contain the value.
-                if (searchValue < GetMin())
-                    return false;
-
-                // if the searchValue is bigger then the maximal Value contained in the subtree rooted at this node, then it means that the node does not contain the value.
-                if (GetMax() > searchValue)
-                    return false;
-
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
-        internal virtual int GetMin()
-        {
-            if (block2s_.Count == 0)
-                return int.MaxValue;
-
-            return block2s_[0].FirstBlock1().FirstNode().GetMin();
-        }
-
-        internal virtual int GetMax()
-        {
-            if (block2s_.Count == 0)
-                return int.MinValue;
-
-            return block2s_[block2s_.Count - 1].LastBlock1().LastNode().GetMax();
-        }
-
+        /// <summary>
+        /// Creates the father node/root of the initial tree.
+        /// </summary>
+        /// <param name="block2">block2 it contains</param>
         public Node(Block2 block2)
         {
-            Component comp = new Component(this);
-            Group group = new Group(this);
+            Blocks2.Add(block2);
+            block2.Node = this;
 
-            group.Comp = comp;
-
-            Comp = comp;
-            NewNode = false;
-            Group = group;
-
-            block2s_.Add(block2);
-            block2s_.Add(block2.Mate);
+            Blocks2.Add(block2.Mate);
             block2.Mate.Node = this;
+
+            Group = new Group(this);
+            Level++;
         }
 
-        internal void Add(Block2 e, Block2 eP)
+        /// <summary>
+        /// Adds the block2 right to the right of the block2 left.
+        /// </summary>
+        /// <param name="left">The block2 next to which it needs to be inserted.</param>
+        /// <param name="right">The block2 that needs to be inserted.</param>
+        internal void Add(Block2 left, Block2 right)
         {
             // find position to insert.
-            int positionEP = 0;
-            for (; positionEP < block2s_.Count; positionEP++)
-            {
-                if (block2s_[positionEP] == e)
-                {
-                    break;
-                }
-            }
-            positionEP++;
+            int position = Blocks2.FindIndex(x => x == left);
+            position++;
 
             // actually insert in the list.
-            block2s_.Insert(positionEP, eP);
-            eP.Node = this;
+            Blocks2.Insert(position, right);
+            right.Node = this;
 
             // Make sure the left/right pointers are set correctly.
-            Block2 aux = e.Right;
-            e.Right = eP;
-            eP.Left = e;
+            Block2 aux = left.Right;
+            left.Right = right;
+            right.Left = left;
 
             if (aux != null)
             {
-                eP.Right = aux;
-                aux.Left = eP;
+                right.Right = aux;
+                aux.Left = right;
             }
         }
 
-        public Node(int value)
-        {
-            Component comp = new Component(this);
-            Group group = new Group(this);
-
-            group.Comp = comp;
-
-            Comp = comp;
-            NewNode = false;
-            Group = group;
-        }
     }
 }

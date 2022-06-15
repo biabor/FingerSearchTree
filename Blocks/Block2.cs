@@ -1,179 +1,137 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FingerSearchTree;
-using GroupAndComponent;
 using Nodes;
 
 namespace Blocks
 {
     public class Block2
     {
-        public Group Group { get => Node.Group; }
-
-        public Block2 Mate { get; set; }
-
-        public bool Pending { get; set; }
-
-        public Node Node { get; set; }
-
-        public Block2 Left { get; set; }
-
-        public Block2 Right { get; set; }
-
-        public int Degree { get => children_.Sum(element => element.Degree); }
-
-        public bool IsFull { get => children_.Count >= 6; }
-
-        private List<Block1> children_ = new List<Block1>();
-
-        public Block2(Block2 mate)
+        public bool IsFull
         {
-            Mate = mate;
-        }
-
-        public Block2(Block1 child)
-        {
-            children_.Add(child);
-            children_.Add(child.Mate);
-            child.Father = this;
-            child.Mate.Father = this;
-            Pending = false;
-            Mate = new Block2(this);
-            Right = Mate;
-            Mate.Left = this;
-        }
-
-        public Block1 FirstBlock1()
-        {
-            if (children_.Count == 0)
-                return null;
-            return children_[0];
-        }
-
-        public Block1 LastBlock1()
-        {
-            if (children_.Count == 0)
-                return Left.LastBlock1();
-            return children_[children_.Count - 1];
-        }
-
-        internal Node GetNodeContaining(int searchValue, out bool biggerFound)
-        {
-            // goes through all blocks1
-            for (int index = 0; index < children_.Count; index++)
+            get
             {
-                Block1 block1 = children_[index];
-                // we skip the ones that contain only smaller elements.
-                if (block1.LastNode().GetMax() < searchValue)
-                    continue;
-
-                // search for the node.
-                Node node = block1.GetNodeContaining(searchValue, out bool isBigger);
-
-                // if the node is found, or if the biggest node smaller is found, just return it.
-                if (node != null)
-                {
-                    biggerFound = isBigger;
-                    return node;
-                }
-                else if (isBigger)
-                {
-                    // if all nodes are bigger, then return the biggest node from the previous blick1.
-                    biggerFound = true;
-                    if (index == 0)
-                        return null;
-                    else
-                        return children_[index - 1].LastNode();
-                }
+                Node childNode = Blocks1[0].Nodes[0];
+                return Degree == Node.BiP + childNode.Ri;
             }
-
-            biggerFound = false;
-            return null;
         }
 
-        public void Add(Block1 e, Block1 eP)
+        public bool IsInvariant3Maintained
+        {
+            get
+            {
+                Node childNode = Blocks1[0].Nodes[0];
+                return Node.Ai <= Degree && Degree <= Node.BiP + childNode.Ri;
+            }
+        }
+
+        public int Degree { get => Blocks1.Sum(x => x.Degree); }
+
+        public List<Block1> Blocks1 = new List<Block1>();
+
+        public Node Node { get; set; } = null;
+
+        public Block2 Mate { get; set; } = null;
+
+        public Block2 Left { get; set; } = null;
+
+        public Block2 Right { get; set; } = null;
+
+        /// <summary>
+        /// Creates an empty Block2
+        /// </summary>
+        public Block2() { }
+
+        /// <summary>
+        /// Creates the block2 containing the block1 in the initial tree.
+        /// </summary>
+        /// <param name="block1"></param>
+        public Block2(Block1 block1)
+        {
+            Blocks1.Add(block1);
+            block1.Father = this;
+
+            Blocks1.Add(block1.Mate);
+            block1.Mate.Father = this;
+
+            Mate = new Block2
+            {
+                Mate = this,
+                Left = this
+            };
+
+            Right = Mate;
+        }
+
+        /// <summary>
+        /// Adds the block1 right to the right of the block1 left.
+        /// </summary>
+        /// <param name="left">The block1 next to which it needs to be inserted.</param>
+        /// <param name="right">The block1 that needs to be inserted.</param>
+        internal void Add(Block1 left, Block1 right)
         {
             if (IsFull && Mate != null && Mate.IsFull)
             {
-                if (Invariant5Holds())
+                //if (Invariant5Holds()) // TODO
+                //{
+                Block2 oldMate = Mate;
+
+                Mate = new Block2
                 {
-                    Block2 oldMate = Mate;
+                    Mate = this
+                };
+                Node.Add(this, Mate);
 
-                    Mate = new Block2(this);
-                    Node.Add(this, Mate);
-
-                    oldMate.Mate = new Block2(oldMate);
-                    oldMate.Node.Add(oldMate, oldMate.Mate);
-                }
+                oldMate.Mate = new Block2
+                {
+                    Mate = oldMate
+                };
+                oldMate.Node.Add(oldMate, oldMate.Mate);
+                //}
             }
 
             // find position to insert.
-            int positionEP = 0;
-            for (; positionEP < children_.Count; positionEP++)
-            {
-                if (children_[positionEP] == e)
-                {
-                    break;
-                }
-            }
-            positionEP++;
+            int position = Blocks1.FindIndex(x => x == left);
+            position++;
 
             // actually insert in the list.
-            children_.Insert(positionEP, eP);
-            eP.Father = this;
+            Blocks1.Insert(position, right);
+            right.Father = this;
 
             // Make sure the left/right pointers are set correctly.
-            Block1 aux = e.Right;
-            e.Right = eP;
-            eP.Left = e;
+            Block1 aux = left.Right;
+            left.Right = right;
+            right.Left = left;
 
             if (aux != null)
             {
-                eP.Right = aux;
-                aux.Left = eP;
+                right.Right = aux;
+                aux.Left = right;
             }
 
-            if (children_.Count > 6)
+            if (IsInvariant3Maintained == false)
             {
+                int transferredPosition = -1;
                 if (Mate == Right)
-                {
-                    Block1 toBeTransferred = children_[children_.Count - 1];
-                    Mate.Transfer(toBeTransferred, true);
-                    children_.Remove(toBeTransferred);
-                }
+                    transferredPosition = Blocks1.Count - 1;
                 else
-                {
-                    Block1 toBeTransferred = children_[0];
-                    Mate.Transfer(toBeTransferred, false);
-                    children_.Remove(toBeTransferred);
-                }
+                    transferredPosition = 0;
+
+                Mate.Transfer(Blocks1[transferredPosition], transferredPosition != 0);
+                Blocks1.RemoveAt(transferredPosition);
             }
         }
 
-        private bool Invariant5Holds()
-        {
-            if (FirstBlock1().Left != null && FirstBlock1().FirstNode().Group == FirstBlock1().Left.LastNode().Group)
-                return false;
-
-            if (LastBlock1().Right != null && LastBlock1().LastNode().Group == LastBlock1().Right.FirstNode().Group)
-                return false;
-            return true;
-        }
-
-        public void Transfer(Block1 block1, bool atStart)
+        /// <summary>
+        /// Mades the transfer by adding the node in this block1.
+        /// </summary>
+        /// <param name="block1">Node to be added</param>
+        /// <param name="atStart">bool saying if the node should be inserted in the beginning or at the end of the list.</param>
+        internal void Transfer(Block1 block1, bool atStart)
         {
             if (atStart)
-            {
-                children_.Insert(0, block1);
-            }
+                Blocks1.Insert(0, block1);
             else
-            {
-                children_.Insert(children_.Count, block1);
-            }
-
+                Blocks1.Insert(Blocks1.Count, block1);
             block1.Father = this;
         }
     }

@@ -1,158 +1,118 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FingerSearchTree;
+﻿using System.Collections.Generic;
 using Nodes;
-using GroupAndComponent;
 
 namespace Blocks
 {
     public class Block1
     {
-        public Block2 Father { get; set; }
+        public bool IsFull { get => Degree == Father.Node.Ai; }
 
-        public Block1 Mate { get; set; }
+        public bool IsInvariant2Maintained { get => Degree <= Father.Node.Ai; }
 
-        public Node OldNode { get; set; }
+        public int Degree { get => Nodes.Count; }
 
-        public Node NewNode { get; set; }
+        public List<Node> Nodes = new List<Node>();
 
-        public Block1 Left { get; set; }
+        public Block2 Father { get; set; } = null;
 
-        public Block1 Right { get; set; }
+        public Block1 Left { get; set; } = null;
 
-        public int Degree { get => nodes_.Count; }
+        public Block1 Right { get; set; } = null;
 
-        public bool IsFull { get => Degree >= 3; }
+        public Block1 Mate { get; set; } = null;
 
-        private List<Node> nodes_ = new List<Node>();
+        /// <summary>
+        /// Creates an empty Block1
+        /// </summary>
+        public Block1() { }
 
-        public Block1(Block1 mate)
-        {
-            Mate = mate;
-        }
-
+        /// <summary>
+        /// Creates the block1 containing the leaf for the initial tree.
+        /// </summary>
+        /// <param name="node">The leaf.</param>
         public Block1(Node node)
         {
-            nodes_.Add(node);
+            Nodes.Add(node);
             node.Father = this;
-            Mate = new Block1(this);
-            Right = Mate;
-            Mate.Left = this;
-        }
 
-        public Node FirstNode()
-        {
-            if (nodes_.Count == 0)
-                return null;
-            return nodes_[0];
-        }
-
-        public Node LastNode()
-        {
-            if (nodes_.Count == 0)
-                return Left.LastNode();
-            return nodes_[nodes_.Count - 1];
-        }
-
-        internal Node GetNodeContaining(int searchValue, out bool isBigger)
-        {
-            // go through all the elements. 
-            for (int index = 0; index < nodes_.Count; index++)
+            Mate = new Block1
             {
-                Node node = nodes_[index];
+                Mate = this,
+                Left = this
+            };
 
-                // ig we found one, just return it.
-                if (node.ContainsElement(searchValue))
-                {
-                    isBigger = false;
-                    return node;
-                }
-                if (node.GetMin() > searchValue)
-                {
-                    // if we found a bigger one, then all the next ones are bigger, and we return the previous one that is smaller. 
-                    isBigger = true;
-                    if (index == 0)
-                        return null;
-                    else
-                        return nodes_[index - 1];
-                }
-            }
-
-            isBigger = false;
-            return null;
+            Right = Mate;
         }
 
-        public void Add(Node e, Node eP)
+        /// <summary>
+        /// Adds the node right to the right of the node left.
+        /// </summary>
+        /// <param name="left">The node next to which it needs to be inserted.</param>
+        /// <param name="right">The node that needs to be inserted.</param>
+        internal void Add(Node left, Node right)
         {
+            // if there is no place to insert, break the pair.
             if (IsFull && Mate != null && Mate.IsFull)
             {
                 Block1 oldMate = Mate;
 
-                Mate = new Block1(this);
+                Mate = new Block1
+                {
+                    Mate = this
+                };
                 Father.Add(this, Mate);
 
-                oldMate.Mate = new Block1(oldMate);
+                oldMate.Mate = new Block1
+                {
+                    Mate = oldMate
+                };
                 oldMate.Father.Add(oldMate, oldMate.Mate);
             }
 
             // find position to insert.
-            int positionEP = 0;
-            for (; positionEP < nodes_.Count; positionEP++)
-            {
-                if (nodes_[positionEP] == e)
-                {
-                    break;
-                }
-            }
-            positionEP++;
+            int position = Nodes.FindIndex(x => x == left);
+            position++;
 
             // actually insert in the list.
-            nodes_.Insert(positionEP, eP);
-            eP.Father = this;
+            Nodes.Insert(position, right);
+            right.Father = this;
 
             // Make sure the left/right pointers are set correctly.
-            Node aux = e.Right;
-            e.Right = eP;
-            eP.Left = e;
-            e.Group.Right = eP.Group;
-            eP.Group.Left = e.Group;
+            Node aux = left.Right;
+            left.Right = right;
+            right.Left = left;
 
             if (aux != null)
             {
-                eP.Right = aux;
-                aux.Left = eP;
-                eP.Group.Right = aux.Group;
-                aux.Group.Left = eP.Group;
+                right.Right = aux;
+                aux.Left = right;
             }
 
-            if (Degree > 3)
+            // If this block1 is overfull then transfer to one node to the mate.
+            if (IsInvariant2Maintained == false)
             {
+                int transferredPosition = -1;
                 if (Mate == Right)
-                {
-                    Mate.Transfer(nodes_[nodes_.Count - 1], true);
-                    nodes_.RemoveAt(nodes_.Count - 1);
-                }
+                    transferredPosition = Nodes.Count - 1;
                 else
-                {
-                    Mate.Transfer(nodes_[0], false);
-                    nodes_.RemoveAt(0);
-                }
+                    transferredPosition = 0;
+
+                Mate.Transfer(Nodes[transferredPosition], transferredPosition != 0);
+                Nodes.RemoveAt(transferredPosition);
             }
         }
 
-        public void Transfer(Node node, bool atStart)
+        /// <summary>
+        /// Mades the transfer by adding the node in this block1.
+        /// </summary>
+        /// <param name="node">Node to be added</param>
+        /// <param name="atStart">bool saying if the node should be inserted in the beginning or at the end of the list.</param>
+        internal void Transfer(Node node, bool atStart)
         {
             if (atStart)
-            {
-                nodes_.Insert(0, node);
-            }
+                Nodes.Insert(0, node);
             else
-            {
-                nodes_.Insert(nodes_.Count, node);
-            }
+                Nodes.Insert(Nodes.Count, node);
             node.Father = this;
         }
     }

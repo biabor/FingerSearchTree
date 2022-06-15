@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FingerSearchTree;
+﻿using System.Collections.Generic;
 using Blocks;
 using Nodes;
 
@@ -11,30 +6,24 @@ namespace GroupAndComponent
 {
     public class Group
     {
-        public bool Valid { get; set; }
+        public bool Valid { get; set; } = true;
 
-        public bool Type { get; set; } // IsSplitGroup;
+        public bool IsSplitGroup { get; set; } = true;
 
-        public Component Comp { get; set; }
+        public Component Component { get; set; } = null;
 
-        public Block2 Block2 { get; set; }
+        public Block2 Block2 { get; set; } = null;
 
-        public Group Mate { get; set; }
+        public List<Node> Nodes = new List<Node>();
 
-        public Block1 Incr { get; set; }
-
-        public Group Left { get; set; }
-
-        public Group Right { get; set; }
-
-        public int Degree { get => nodes_.Count; }
-
-        private List<Node> nodes_ = new List<Node>();
+        public Group Mate { get; set; } = null;
 
         public Group(Node node)
         {
-            Valid = true;
-            nodes_.Add(node);
+            Nodes.Add(node);
+            Component = new Component(this);
+            if (node.FatherNode != null)
+                Block2 = node.Father.Father;
         }
     }
 }
