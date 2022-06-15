@@ -11,7 +11,7 @@ namespace Blocks
             get
             {
                 Node childNode = Blocks1[0].Nodes[0];
-                return Degree == Node.BiP + childNode.Ri;
+                return Degree == Node.BiP + childNode.RiP;
             }
         }
 
@@ -20,7 +20,7 @@ namespace Blocks
             get
             {
                 Node childNode = Blocks1[0].Nodes[0];
-                return Node.Ai <= Degree && Degree <= Node.BiP + childNode.Ri;
+                return Node.Ai <= Degree && Degree <= Node.BiP + childNode.RiP;
             }
         }
 

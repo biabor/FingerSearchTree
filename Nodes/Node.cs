@@ -11,15 +11,15 @@ namespace Nodes
 
         public int Level { get; set; } = 0;
 
-        public long Bi { get => (long)/*Math.Pow(2, */Math.Pow(2, 2 * Level + 4)/*)*/; }
+        public long Bi { get => Level == 1 ? (long) Math.Log( Math.Pow(4,4),2):(long)/*Math.Pow(2, */Math.Pow(2, 2 * Level + 4)/*)*/; }
 
         public long BiP { get => (long) /*Math.Pow(2,*/ Math.Pow(2, 2 * Level + 3) - 2/*)*/; } //Bi'
 
-        public long Ai { get => (long)/*Math.Pow(2, */Math.Pow(2, 2 * Level)/*)*/; }
+        public long Ai { get => Level == 1 ? (long) Math.Log(Math.Pow(2, Math.Pow(2,2)),2) : (long)/*Math.Pow(2, */Math.Pow(2, 2 * Level)/*)*/; }
 
-        public long Fi { get => (long)/*Math.Pow(2, */Math.Pow(2, 2 * Level + 1)/*)*/; }
+        public long Fi { get => Level == 1 ? (long) Math.Log(Math.Pow(2, Math.Pow(2, 3)),2) : (long)/*Math.Pow(2, */Math.Pow(2, 2 * Level + 1)/*)*/; }
 
-        public long Ri { get => Bi / BiP; }
+        public long RiP { get => Bi / BiP; }
 
         public Node Left { get; set; } = null;
 

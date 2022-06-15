@@ -16,7 +16,6 @@ namespace FingerSearchTree
             InsertLeaf(left, right);
 
             Group f = right.FatherNode.Group;
-            f.IsSplitGroup = true;
 
             Group r = Find(f, right.FatherNode);
 
@@ -42,7 +41,12 @@ namespace FingerSearchTree
 
         private static Node Split(Node u)
         {
-            Node uP = new Node();
+            // Rebalance Node u
+            u.Group.IsSplitGroup = true;
+            u.IsUnderContruction = true;
+
+            // Split the node.
+            Node uP = new Node(); //TODO: move blocks.
             GAdd(uP, u.Group);
             return uP;
         }
