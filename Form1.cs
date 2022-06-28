@@ -21,7 +21,11 @@ namespace FingerSearchTree
         private void addBtn__Click(object sender, EventArgs e)
         {
             Random rnd = new Random();
-            lastLeaf = Tree.Insert(lastLeaf, rnd.Next(lastLeaf.Value, int.MaxValue));
+            while (lastLeaf.FatherNode.Father == null)
+                lastLeaf = Tree.Insert(lastLeaf, rnd.Next(lastLeaf.Value, int.MaxValue));
+
+            while (true)
+                lastLeaf = Tree.Insert(lastLeaf, rnd.Next(lastLeaf.Value, int.MaxValue));
         }
     }
 }

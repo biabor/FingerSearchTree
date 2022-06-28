@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
+using FingerSearchTree;
 using Nodes;
 
 namespace Blocks
 {
     public class Block1
     {
-        public bool IsFull { get => Degree == Father.Node.Ai; }
+        public bool IsFull { get => Degree == Helpers.Ai(Father.Node.Level); }
 
-        public bool IsInvariant2Maintained { get => Degree <= Father.Node.Ai; }
+        public bool IsInvariant2Maintained { get => Degree <= Helpers.Ai(Father.Node.Level); }
 
         public int Degree { get => Nodes.Count; }
 
@@ -51,24 +52,6 @@ namespace Blocks
         /// <param name="right">The node that needs to be inserted.</param>
         internal void Add(Node left, Node right)
         {
-            // if there is no place to insert, break the pair.
-            if (IsFull && Mate != null && Mate.IsFull)
-            {
-                Block1 oldMate = Mate;
-
-                Mate = new Block1
-                {
-                    Mate = this
-                };
-                Father.Add(this, Mate);
-
-                oldMate.Mate = new Block1
-                {
-                    Mate = oldMate
-                };
-                oldMate.Father.Add(oldMate, oldMate.Mate);
-            }
-
             // find position to insert.
             int position = Nodes.FindIndex(x => x == left);
             position++;
@@ -99,6 +82,24 @@ namespace Blocks
 
                 Mate.Transfer(Nodes[transferredPosition], transferredPosition != 0);
                 Nodes.RemoveAt(transferredPosition);
+            }
+
+            // if there is no place to insert, break the pair.
+            if (IsFull && Mate != null && Mate.IsFull)
+            {
+                Block1 oldMate = Mate;
+
+                Mate = new Block1
+                {
+                    Mate = this
+                };
+                Father.Add(this, Mate);
+
+                oldMate.Mate = new Block1
+                {
+                    Mate = oldMate
+                };
+                oldMate.Father.Add(oldMate, oldMate.Mate);
             }
         }
 

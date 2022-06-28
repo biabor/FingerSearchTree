@@ -1,28 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using FingerSearchTree;
 using Nodes;
 
 namespace Blocks
 {
     public class Block2
     {
-        public bool IsFull
-        {
-            get
-            {
-                Node childNode = Blocks1[0].Nodes[0];
-                return Degree == Node.BiP + childNode.RiP;
-            }
-        }
+        public bool IsFull => Degree == Helpers.BiP(Node.Level) + Helpers.RiP(Node.Level - 1);
 
-        public bool IsInvariant3Maintained
-        {
-            get
-            {
-                Node childNode = Blocks1[0].Nodes[0];
-                return Node.Ai <= Degree && Degree <= Node.BiP + childNode.RiP;
-            }
-        }
+        public bool IsInvariant3Maintained => Helpers.Ai(Node.Level) <= Degree && Degree <= Helpers.BiP(Node.Level) + Helpers.RiP(Node.Level - 1);
 
         public int Degree { get => Blocks1.Sum(x => x.Degree); }
 
@@ -69,26 +56,6 @@ namespace Blocks
         /// <param name="right">The block1 that needs to be inserted.</param>
         internal void Add(Block1 left, Block1 right)
         {
-            if (IsFull && Mate != null && Mate.IsFull)
-            {
-                //if (Invariant5Holds()) // TODO
-                //{
-                Block2 oldMate = Mate;
-
-                Mate = new Block2
-                {
-                    Mate = this
-                };
-                Node.Add(this, Mate);
-
-                oldMate.Mate = new Block2
-                {
-                    Mate = oldMate
-                };
-                oldMate.Node.Add(oldMate, oldMate.Mate);
-                //}
-            }
-
             // find position to insert.
             int position = Blocks1.FindIndex(x => x == left);
             position++;
@@ -118,6 +85,26 @@ namespace Blocks
 
                 Mate.Transfer(Blocks1[transferredPosition], transferredPosition != 0);
                 Blocks1.RemoveAt(transferredPosition);
+            }
+
+            if (IsFull && Mate != null && Mate.IsFull)
+            {
+                //if (Invariant5Holds()) // TODO
+                //{
+                Block2 oldMate = Mate;
+
+                Mate = new Block2
+                {
+                    Mate = this
+                };
+                Node.Add(this, Mate);
+
+                oldMate.Mate = new Block2
+                {
+                    Mate = oldMate
+                };
+                oldMate.Node.Add(oldMate, oldMate.Mate);
+                //}
             }
         }
 

@@ -1,5 +1,7 @@
-﻿using GroupAndComponent;
+﻿using Blocks;
+using GroupAndComponent;
 using Nodes;
+using System.Collections.Generic;
 
 namespace FingerSearchTree
 {
@@ -15,39 +17,55 @@ namespace FingerSearchTree
             Leaf right = new Leaf(value);
             InsertLeaf(left, right);
 
-            Group f = right.FatherNode.Group;
+            Group r = Find(right.FatherNode);
 
-            Group r = Find(f, right.FatherNode);
-
-
-            MultiBreak(r);
-
-            Node u = r.Block2.Node;
-            if (u.Blocks2.Count >= 4)
+            if (MultiBreak(r))
             {
+                Node u = r.Block2.Node;
                 Node uP = Split(u);
-
-                //Node z = Find(right.FatherNode);
-                //Break(z);
-
-                //List<Node> zNodes = MultiSplit(z);
-                //Node y = Find(z.FatherNode);
-
-                //foreach (Node u in zNodes)
-                //    Add(u, y);
+                if (uP != null)
+                {
+                    if (u.FatherNode == null)
+                        new Node(new Block2(new Block1(u)));
+                    u.Father.Add(u, uP);
+                }
             }
+
             return right;
         }
 
+        /// <summary>
+        /// Splits the Node into two nodes, by transferring the rightmost pair of blocks2 from u to uP.
+        /// </summary>
+        /// <param name="u">The node that needs to be split in two.</param>
+        /// <returns>The right part of the node.</returns>
         private static Node Split(Node u)
         {
-            // Rebalance Node u
-            u.Group.IsSplitGroup = true;
+            Component temp = u.Component;
+            u.Group = new Group(u)
+            {
+                Component = temp,
+                IsSplitGroup = true
+            };
             u.IsUnderContruction = true;
 
-            // Split the node.
-            Node uP = new Node(); //TODO: move blocks.
-            GAdd(uP, u.Group);
+            if (u.Blocks2.Count < 4)
+                return null;
+
+            Node uP = new Node
+            {
+                Blocks2 = new List<Block2>()
+                {
+                    u.Blocks2[u.Blocks2.Count - 1],
+                    u.Blocks2[u.Blocks2.Count - 1].Mate
+                },
+                Level = u.Level,
+            };
+
+            u.Group.Add(uP);
+
+            u.Blocks2.RemoveAll(elem => uP.Blocks2.Contains(elem));
+
             return uP;
         }
 
@@ -56,42 +74,34 @@ namespace FingerSearchTree
         /// </summary>
         /// <param name="f">group </param>
         /// <param name="node">node</param>
-        /// <returns>oot group of the component containing the group f</returns>
-        private static Group Find(Group f, Node node)
+        /// <returns>Root group of the component containing the group f</returns>
+        private static Group Find(Node f)
         {
-            if (f.Valid && f.Component.Valid)
+            if (f.Group.Valid && f.Component.Valid)
                 return f.Component.Root;
 
-            if (f.Valid)
-            {
-                f.Component = new Component(f);
-                return f;
-            }
-
-            // TODO: understand better this part. Page 28-29 
-            node.Group = new Group(node);
-            return node.Group;
+            if (f.Group.Valid)
+                f.Group.Component = new Component(f.Group);
+            else
+                f.Group = new Group(f);
+            return f.Group;
         }
 
         /// <summary>
-        /// Adds node v to the group G.
+        /// Performs the MultiSplit/MultiFusion operation.
         /// </summary>
-        /// <param name="v">Node to be added</param>
-        /// <param name="G">Group to be added in.</param>
-        private static void GAdd(Node v, Group G)
+        /// <param name="r">The group in question</param>
+        /// <returns>True, if a rebalancing operation is needed, false otherwise.</returns>
+        private static bool MultiBreak(Group r)
         {
-            G.Nodes.Add(v);
-            v.Group = G;
-            v.IsUnderContruction = true;
-        }
-
-        private static void MultiBreak(Group G)
-        {
-            G.Valid = false;
-            if (G.IsSplitGroup)
+            if (r.Nodes.Count == Helpers.RiP(r.Nodes[0].Level))
             {
-                G.Component.Valid = false;
+                r.Valid = false;
+                r.Component.Valid = false;
+                r.Component = r.Block2.Node.Component;
+                return true;
             }
+            return false;
         }
 
         /// <summary>
@@ -104,51 +114,5 @@ namespace FingerSearchTree
             left.Father.Add(left, right);
             right.Group.Block2 = right.Father.Father;
         }
-
-        ///// <summary>
-        ///// Adds node u, which is a singleton component, in the component with handle y.
-        ///// It is assumed that y is the handle of the valid component of father(u).
-        ///// </summary>
-        ///// <param name="u">Node to change its component</param>
-        ///// <param name="y">Handle of the father(u) component.</param>
-        //private static void Add(Node u, Node y)
-        //{
-        //    Component component = y.Component;
-
-        //    u.Component = component;
-        //    component.Nodes.Add(u);
-        //}
-
-        //private static List<Node> MultiSplit(Node z)
-        //{
-        //    return new List<Node>() { z }; // TODO 
-        //}
-
-        ///// <summary>
-        ///// Breaks the component in which the node is.
-        ///// </summary>
-        ///// <param name="z">the node of which component to break</param>
-        //private static void Break(Node z)
-        //{
-        //    z.Component.Valid = false;
-        //}
-
-        ///// <summary>
-        ///// Component method: finds the root of the component containing the given node.
-        ///// </summary>
-        ///// <param name="node">Node of which the component root is found.</param>
-        ///// <returns>the component root</returns>
-        //private static Node Find(Node node)
-        //{
-        //    Component component = node.Component;
-
-        //    if (component.Valid)
-        //        return component.Root;
-
-        //    component.Nodes.Remove(node);
-        //    node.Component = new Component(node);
-        //    return node;
-
-        //}
     }
 }
