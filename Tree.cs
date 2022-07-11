@@ -1,6 +1,7 @@
 ﻿using Blocks;
 using GroupAndComponent;
 using Nodes;
+using System;
 using System.Collections.Generic;
 
 namespace FingerSearchTree
@@ -17,7 +18,14 @@ namespace FingerSearchTree
             Leaf right = new Leaf(value);
             InsertLeaf(left, right);
 
-            Group r = Find(right.FatherNode);
+            Update(right.FatherNode);
+
+            return right;
+        }
+
+        private static void Update(Node f)
+        {
+            Group r = Find(f);
 
             if (MultiBreak(r))
             {
@@ -30,8 +38,28 @@ namespace FingerSearchTree
                     u.Father.Add(u, uP);
                 }
             }
+        }
 
-            return right;
+        internal static Leaf Search(Leaf lastLeaf, int value)
+        {
+            Node temp = lastLeaf;
+
+            while(temp.ContainsValue(value) == false)
+            {
+                if (temp.Left != null && temp.Left.ContainsValue(value))
+                    temp = temp.Left;
+                else if (temp.Right != null && temp.Right.ContainsValue(value))
+                    temp = temp.Right;
+                else if (temp.FatherNode != null)
+                    temp = temp.FatherNode;
+                else
+                    break;
+            }
+
+            while (temp is Leaf == false)
+                temp = temp.FindChildContaining(value);
+
+            return temp as Leaf;
         }
 
         /// <summary>
@@ -77,14 +105,21 @@ namespace FingerSearchTree
         /// <returns>Root group of the component containing the group f</returns>
         private static Group Find(Node f)
         {
-            if (f.Group.Valid && f.Component.Valid)
-                return f.Component.Root;
+            if (f.Group.IsSplitGroup){
+                if (f.Group.Valid && f.Component.Valid)
+                    return f.Component.Root;
 
-            if (f.Group.Valid)
-                f.Group.Component = new Component(f.Group);
+                if (f.Group.Valid)
+                    f.Group.Component = new Component(f.Group);
+                else
+                    f.Group = new Group(f);
+                return f.Group;
+            }
             else
-                f.Group = new Group(f);
-            return f.Group;
+            {
+                return f.Component.Root;
+            }
+            
         }
 
         /// <summary>

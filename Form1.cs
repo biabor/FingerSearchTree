@@ -16,16 +16,20 @@ namespace FingerSearchTree
 
         private void searchBtn__Click(object sender, EventArgs e)
         {
+            lastLeaf = Tree.Search(lastLeaf, int.Parse(textBox1.Text));
         }
 
         private void addBtn__Click(object sender, EventArgs e)
         {
             Random rnd = new Random();
-            while (lastLeaf.FatherNode.Father == null)
-                lastLeaf = Tree.Insert(lastLeaf, rnd.Next(lastLeaf.Value, int.MaxValue));
 
             while (true)
-                lastLeaf = Tree.Insert(lastLeaf, rnd.Next(lastLeaf.Value, int.MaxValue));
+            {
+                int value = rnd.Next(int.MinValue, int.MaxValue);
+                lastLeaf = Tree.Search(lastLeaf, value);
+                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
+                    lastLeaf = Tree.Insert(lastLeaf, value);
+            }
         }
     }
 }

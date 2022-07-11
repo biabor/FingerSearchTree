@@ -15,9 +15,82 @@ namespace Nodes
 
         public int Degree { get => Blocks2.Sum(x => x.Degree); }
 
+        public virtual int Min
+        {
+            get
+            {
+                if (Blocks2.Count == 0)
+                    return int.MaxValue;
+
+                if (Blocks2[0].Blocks1.Count == 0)
+                    return int.MaxValue;
+
+                if (Blocks2[0].Blocks1[0].Nodes.Count == 0)
+                    return int.MaxValue;
+
+                return Blocks2[0].Blocks1[0].Nodes[0].Min;
+            }
+        }
+
+        public virtual int Max
+        {
+            get
+            {
+                if (Blocks2.Count == 0)
+                    return int.MinValue;
+
+                if (Blocks2[Blocks2.Count - 1].Blocks1.Count == 0)
+                    return int.MinValue;
+
+                if (Blocks2[Blocks2.Count - 1].Blocks1[Blocks2[Blocks2.Count - 1].Blocks1.Count - 1].Nodes.Count == 0)
+                    return int.MaxValue;
+
+                List<Node> nodes = Blocks2[Blocks2.Count - 1].Blocks1[Blocks2[Blocks2.Count - 1].Blocks1.Count - 1].Nodes;
+
+                return nodes[nodes.Count - 1].Max;
+            }
+        }
+
         public Node Left { get; set; } = null;
 
         public Node Right { get; set; } = null;
+
+        internal Node FindChildContaining(int value)
+        {
+            foreach(Block2 block2 in Blocks2)
+            {
+                if (block2.Blocks1.Count == 0)
+                    continue;
+
+                Block1 block1 = block2.Blocks1[block2.Blocks1.Count - 1];
+                if (block1.Nodes.Count == 0)
+                    continue;
+
+                Node node = block1.Nodes[block1.Nodes.Count - 1];
+                if (node.Max < value)
+                    continue;
+
+               foreach(Block1 bl1 in block2.Blocks1)
+               {
+                    if (bl1.Nodes.Count == 0)
+                        continue;
+
+                    node = bl1.Nodes[bl1.Nodes.Count - 1];
+                    if (node.Max < value)
+                        continue;
+
+                    foreach(Node no in bl1.Nodes)
+                    {
+                        if (no.ContainsValue(value))
+                            return no;
+                        else
+                            return no.Left;
+                    }
+               }
+            }
+
+            return null;
+        }
 
         public Node FatherNode { get => Father?.Father?.Node; }
 
@@ -44,7 +117,24 @@ namespace Nodes
             block2.Mate.Node = this;
 
             Group = new Group(this);
-            Level= Blocks2[0].Blocks1[0].Nodes[0].Level + 1;
+            Level = Blocks2[0].Blocks1[0].Nodes[0].Level + 1;
+        }
+
+        internal virtual bool ContainsValue(int value)
+        {
+            if (FatherNode == null)
+                return true;
+
+            if (Blocks2.Count == 0)
+                return false;
+
+            if (value < Min)
+                return false;
+
+            if (value > Max)
+                return false;
+
+            return true;
         }
 
         /// <summary>
@@ -76,7 +166,7 @@ namespace Nodes
             if (Blocks2.Count >= 8) // TODO 4 * Helpers.BiP(Level))
             {
                 Node wP = Split();
-                if(FatherNode == null)
+                if (FatherNode == null)
                 {
                     new Node(new Block2(new Block1(this)));
                 }

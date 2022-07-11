@@ -7,6 +7,10 @@ namespace Nodes
     {
         public int Value { get; set; } = int.MinValue;
 
+        public override int Min { get => Value; }
+
+        public override int Max { get => Value; }
+
         /// <summary>
         /// Create the Leaf of the initial tree.
         /// </summary>
@@ -26,5 +30,9 @@ namespace Nodes
             Group = new Group(this);
         }
 
+        internal override bool ContainsValue(int value)
+        {
+            return value == Value;
+        }
     }
 }

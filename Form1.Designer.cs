@@ -31,13 +31,15 @@ namespace FingerSearchTree
         {
             this.searchBtn_ = new System.Windows.Forms.Button();
             this.addBtn_ = new System.Windows.Forms.Button();
+            this.textBox1 = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // searchBtn_
             // 
-            this.searchBtn_.Location = new System.Drawing.Point(37, 41);
+            this.searchBtn_.Location = new System.Drawing.Point(56, 63);
+            this.searchBtn_.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.searchBtn_.Name = "searchBtn_";
-            this.searchBtn_.Size = new System.Drawing.Size(75, 23);
+            this.searchBtn_.Size = new System.Drawing.Size(112, 35);
             this.searchBtn_.TabIndex = 1;
             this.searchBtn_.Text = "Search";
             this.searchBtn_.UseVisualStyleBackColor = true;
@@ -45,30 +47,42 @@ namespace FingerSearchTree
             // 
             // addBtn_
             // 
-            this.addBtn_.Location = new System.Drawing.Point(197, 41);
+            this.addBtn_.Location = new System.Drawing.Point(296, 63);
+            this.addBtn_.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.addBtn_.Name = "addBtn_";
-            this.addBtn_.Size = new System.Drawing.Size(75, 23);
+            this.addBtn_.Size = new System.Drawing.Size(112, 35);
             this.addBtn_.TabIndex = 2;
             this.addBtn_.Text = "Add";
             this.addBtn_.UseVisualStyleBackColor = true;
             this.addBtn_.Click += new System.EventHandler(this.addBtn__Click);
             // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(296, 312);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(375, 26);
+            this.textBox1.TabIndex = 3;
+            // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(1200, 692);
+            this.Controls.Add(this.textBox1);
             this.Controls.Add(this.addBtn_);
             this.Controls.Add(this.searchBtn_);
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
         private System.Windows.Forms.Button searchBtn_;
         private System.Windows.Forms.Button addBtn_;
+        private System.Windows.Forms.TextBox textBox1;
     }
 }
 
