@@ -6,7 +6,7 @@ namespace FingerSearchTree
     {
         public static long Bi(int level)
         {
-            return (long)Math.Pow(2, (2 * level) + 4);
+            return (long)Math.Pow(2, (2 * level) + 4); 
         }
 
         public static long BiP(int level) 

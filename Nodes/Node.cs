@@ -55,43 +55,6 @@ namespace Nodes
 
         public Node Right { get; set; } = null;
 
-        internal Node FindChildContaining(int value)
-        {
-            foreach(Block2 block2 in Blocks2)
-            {
-                if (block2.Blocks1.Count == 0)
-                    continue;
-
-                Block1 block1 = block2.Blocks1[block2.Blocks1.Count - 1];
-                if (block1.Nodes.Count == 0)
-                    continue;
-
-                Node node = block1.Nodes[block1.Nodes.Count - 1];
-                if (node.Max < value)
-                    continue;
-
-               foreach(Block1 bl1 in block2.Blocks1)
-               {
-                    if (bl1.Nodes.Count == 0)
-                        continue;
-
-                    node = bl1.Nodes[bl1.Nodes.Count - 1];
-                    if (node.Max < value)
-                        continue;
-
-                    foreach(Node no in bl1.Nodes)
-                    {
-                        if (no.ContainsValue(value))
-                            return no;
-                        else
-                            return no.Left;
-                    }
-               }
-            }
-
-            return null;
-        }
-
         public Node FatherNode { get => Father?.Father?.Node; }
 
         public List<Block2> Blocks2 = new List<Block2>();
@@ -100,7 +63,7 @@ namespace Nodes
 
         public Group Group { get; set; } = null;
 
-        public Component Component { get => Group?.Component; }
+        public Component Component { get; set; } = null;
 
         public Node() { }
 
@@ -113,9 +76,7 @@ namespace Nodes
             Blocks2.Add(block2);
             block2.Node = this;
 
-            Blocks2.Add(block2.Mate);
-            block2.Mate.Node = this;
-
+            Component = new Component(this);
             Group = new Group(this);
             Level = Blocks2[0].Blocks1[0].Nodes[0].Level + 1;
         }
@@ -135,6 +96,43 @@ namespace Nodes
                 return false;
 
             return true;
+        }
+
+        internal Node FindChildContaining(int value)
+        {
+            foreach (Block2 block2 in Blocks2)
+            {
+                if (block2.Blocks1.Count == 0)
+                    continue;
+
+                Block1 block1 = block2.Blocks1[block2.Blocks1.Count - 1];
+                if (block1.Nodes.Count == 0)
+                    continue;
+
+                Node node = block1.Nodes[block1.Nodes.Count - 1];
+                if (node.Max < value)
+                    continue;
+
+                foreach (Block1 bl1 in block2.Blocks1)
+                {
+                    if (bl1.Nodes.Count == 0)
+                        continue;
+
+                    node = bl1.Nodes[bl1.Nodes.Count - 1];
+                    if (node.Max < value)
+                        continue;
+
+                    foreach (Node no in bl1.Nodes)
+                    {
+                        if (no.ContainsValue(value))
+                            return no;
+                        else
+                            return no.Left;
+                    }
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -162,37 +160,17 @@ namespace Nodes
                 right.Right = aux;
                 aux.Left = right;
             }
-
-            if (Blocks2.Count >= 8) // TODO 4 * Helpers.BiP(Level))
-            {
-                Node wP = Split();
-                if (FatherNode == null)
-                {
-                    new Node(new Block2(new Block1(this)));
-                }
-                Father.Add(this, wP);
-                Group.Block2 = Father.Father;
-            }
         }
 
-        /// <summary>
-        /// Splits the Node into two nodes.
-        /// </summary>
-        /// <param name="u">The node that needs to be split in two.</param>
-        /// <returns>The right part of the node.</returns>
-        public Node Split()
+        internal void Remove(Block2 e)
         {
-            Node wP = new Node
-            {
-                Blocks2 = Blocks2.GetRange(Blocks2.Count / 2, Blocks2.Count - Blocks2.Count / 2),
-                Level = Level
-            };
+            Blocks2.Remove(e);
 
-            Group.Add(wP);
-            Blocks2.RemoveRange(Blocks2.Count / 2, Blocks2.Count - Blocks2.Count / 2);
+            if (e.Left != null)
+                e.Left.Right = e.Right;
+            if (e.Right != null)
+                e.Right.Left = e.Left;
 
-            return wP;
         }
-
     }
 }

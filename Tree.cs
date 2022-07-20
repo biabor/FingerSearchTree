@@ -13,38 +13,11 @@ namespace FingerSearchTree
             return new Leaf();
         }
 
-        public static Leaf Insert(Leaf left, int value)
-        {
-            Leaf right = new Leaf(value);
-            InsertLeaf(left, right);
-
-            Update(right.FatherNode);
-
-            return right;
-        }
-
-        private static void Update(Node f)
-        {
-            Group r = Find(f);
-
-            if (MultiBreak(r))
-            {
-                Node u = r.Block2.Node;
-                Node uP = Split(u);
-                if (uP != null)
-                {
-                    if (u.FatherNode == null)
-                        new Node(new Block2(new Block1(u)));
-                    u.Father.Add(u, uP);
-                }
-            }
-        }
-
         internal static Leaf Search(Leaf lastLeaf, int value)
         {
             Node temp = lastLeaf;
 
-            while(temp.ContainsValue(value) == false)
+            while (temp.ContainsValue(value) == false)
             {
                 if (temp.Left != null && temp.Left.ContainsValue(value))
                     temp = temp.Left;
@@ -62,92 +35,208 @@ namespace FingerSearchTree
             return temp as Leaf;
         }
 
-        /// <summary>
-        /// Splits the Node into two nodes, by transferring the rightmost pair of blocks2 from u to uP.
-        /// </summary>
-        /// <param name="u">The node that needs to be split in two.</param>
-        /// <returns>The right part of the node.</returns>
-        private static Node Split(Node u)
+        public static Leaf Insert(Leaf left, int value)
         {
-            Component temp = u.Component;
-            u.Group = new Group(u)
+            Leaf newLeaf = new Leaf(value);
+            left.Father.Add(left, newLeaf);
+
+            Node r = Find(newLeaf.Father);
+            int i = r.Level + 1;
+            bool isRSecureInvterval = Helpers.Fi(i-1) * 4 < r.Degree && r.Degree < Helpers.BiP(i-1);
+
+            Group rPP = MultiBreak(r.Group);
+            Group rP = rPP.Left;
+
+            if (isRSecureInvterval)
+                rPP.IsSplitGroup = true;
+
+            if(rPP.Nodes.Count == 1 && rPP.Nodes[0].Blocks2.Count == 1 && rPP.Nodes[0].Blocks2[0].Blocks1.Count == 1)
             {
-                Component = temp,
-                IsSplitGroup = true
-            };
-            u.IsUnderContruction = true;
+                if (rPP.Degree + rP.Degree <= 4 * Helpers.Fi(i))
+                    GFuse(rPP, rP);
+                else
+                    GShare(rPP, rP);
+            }
 
-            if (u.Blocks2.Count < 4)
-                return null;
-
-            Node uP = new Node
-            {
-                Blocks2 = new List<Block2>()
-                {
-                    u.Blocks2[u.Blocks2.Count - 1],
-                    u.Blocks2[u.Blocks2.Count - 1].Mate
-                },
-                Level = u.Level,
-            };
-
-            u.Group.Add(uP);
-
-            u.Blocks2.RemoveAll(elem => uP.Blocks2.Contains(elem));
-
-            return uP;
+            return newLeaf;
         }
 
-        /// <summary>
-        /// Finds the root group of the component containing the group f, which in itself contains node node
-        /// </summary>
-        /// <param name="f">group </param>
-        /// <param name="node">node</param>
-        /// <returns>Root group of the component containing the group f</returns>
-        private static Group Find(Node f)
-        {
-            if (f.Group.IsSplitGroup){
-                if (f.Group.Valid && f.Component.Valid)
-                    return f.Component.Root;
+        #region Private Methods.
 
+        private static Node Find(Block1 father)
+        {
+            Node f = father.Father.Node;
+
+            if (f.Group.IsSplitGroup)
+            {
                 if (f.Group.Valid)
-                    f.Group.Component = new Component(f.Group);
+                {
+                    if (f.Group.Component.Valid)
+                        return f.Group.Component.Root;
+                    else
+                    {
+                        f.Component = new Component(f);
+                        f.Group.Component = f.Component;
+                        return f.Group.Component.Root;
+                    }
+                }
                 else
-                    f.Group = new Group(f);
-                return f.Group;
+                {
+                    f.Component = new Component(f);
+                    f.Group = new Group(f)
+                    {
+                        Component = f.Component,
+                        IsSplitGroup = true
+                    };
+                    return f.Component.Root;
+                }
             }
             else
             {
-                return f.Component.Root;
+                f = father.OldNode.Group.Valid ? father.OldNode : father.NewNode;
+
+                if (f.Component.Valid)
+                    return f.Component.Root;
+                else
+                {
+                    f.Component = new Component(f);
+                    return f.Component.Root;
+                }
             }
-            
         }
 
-        /// <summary>
-        /// Performs the MultiSplit/MultiFusion operation.
-        /// </summary>
-        /// <param name="r">The group in question</param>
-        /// <returns>True, if a rebalancing operation is needed, false otherwise.</returns>
-        private static bool MultiBreak(Group r)
+        private static Group MultiBreak(Group g)
         {
-            if (r.Nodes.Count == Helpers.RiP(r.Nodes[0].Level))
+            g.Valid = false;
+            if (g.IsSplitGroup)
             {
-                r.Valid = false;
-                r.Component.Valid = false;
-                r.Component = r.Block2.Node.Component;
-                return true;
+                g.Component.Valid = false;
+                /// Adds all the new nodes to the component in which their father group z belongs?
+                return g;
             }
-            return false;
+            else
+            {
+                // TODO break all components rooted at nodes inside this fusion group simultaneously and in constant time.
+                //foreach(Node n in g.Nodes)
+                //{
+                //    if (n.Component.Root == n)
+                //        n.Component.Valid = false;
+                //}
+                //g.Nodes.ForEach(n => { if (n.Component.Root == n) n.Component.Valid = false; });
+
+                if (g.Mate != null && g.Mate.Valid == false)
+                {
+                    MultiBreak(g.Mate);
+                }
+
+                Node node = g.Nodes[0];
+                //node.Component = node.FatherNode.Component; // ???
+                g.Component = node.Component;
+                return g;
+            } 
         }
 
-        /// <summary>
-        /// Inserts the right leaf to the right of the left one in the parent of the left one.
-        /// </summary>
-        /// <param name="left">the left leaf.</param>
-        /// <param name="right">the right leaf.</param>
-        private static void InsertLeaf(Leaf left, Leaf right)
+        private static void GFuse(Group g, Group gP)
         {
-            left.Father.Add(left, right);
-            right.Group.Block2 = right.Father.Father;
+            //if (g.Degree > gP.Degree)
+            //    GFuse(gP, g);
+
+            // TODO transfer block2 p of g to gP in constant time
+
+
+            g.Mate = gP;
+            gP.Mate = g;
+
+            if (gP.Right == g)
+            {
+                // TODO gP.Incr = g.LeftMostBlock1
+            }
+            else
+            {
+                // TODO gP.Incr = g.RightMostBlock1
+            }
+
+            // More specifically, fields oldnode and newnode of blocks1 and field group of the nodes are updated incrementally
+            // gP will not participate in a new Gfuse operation as long as the incremental transfer contninues.
+            // When the transfer ends, g is discarded and gP.mate as well as gP.incr are set to null.
+
+            // When GFuse involves a normal singleton group gP and a small group g, the node under construction will be the singleton node inside gP.
+            // In this way, there is no need to update the fields of blocks1 inside the only node of gP.
         }
+
+        private static void GShare(Group g, Group gP)
+        {
+            MultiBreak(gP);
+            if (g.Degree > gP.Degree)
+                GFuse(gP, g);
+            //Move a block2 pP from gP to g incrementally, in order to update the corresponding pointer fields of blocks1 and nodes.
+            //insert block1 q (the only one of g)to pP
+            //When the transfer ends, pointers g.Mate, gP.Mate are set to null
+        }
+
+        private static Node Split(Node node)
+        {
+            List<Block2> block2s = GetAndRemoveLastPairOfBlocks2(node);
+            if (block2s == null)
+                return null;
+
+            Node nodeP = new Node()
+            {
+                Blocks2 = block2s,
+                Level = node.Level
+            };
+
+            if (node.FatherNode == null)
+            {
+                new Node(new Block2(new Block1(node)));
+            }
+
+            node.Father.Add(node, nodeP);
+
+            GAdd(nodeP, node.Group);
+            return nodeP;
+        }
+
+        private static void GAdd(Node v, Group g)
+        {
+            if(v.Group != null)
+                v.Group.Nodes.Remove(v);
+            v.Group = g;
+            v.Group.Nodes.Add(v);
+            v.IsUnderContruction = true;
+        }
+
+        private static List<Block2> GetAndRemoveLastPairOfBlocks2(Node node)
+        {
+            if (node.Blocks2.Count < 4)
+                return null;
+
+            List<Block2> block2s = new List<Block2>();
+            Block2 bl2 = node.Blocks2[node.Blocks2.Count - 1];
+            block2s.Add(bl2);
+            if (bl2.Pending)
+            {
+                block2s.Add(node.Blocks2[node.Blocks2.Count - 2]);
+                block2s.Add(node.Blocks2[node.Blocks2.Count - 3]);
+                if (node.Blocks2[node.Blocks2.Count - 4].Pending)
+                    block2s.Add(node.Blocks2[node.Blocks2.Count - 4]);
+            }
+            else
+            {
+                block2s.Add(node.Blocks2[node.Blocks2.Count - 2]);
+                if (node.Blocks2[node.Blocks2.Count - 3].Pending)
+                    block2s.Add(node.Blocks2[node.Blocks2.Count - 3]);
+            }
+
+            block2s.Reverse();
+
+            if (block2s.Contains(node.Blocks2[0]))
+                return null;
+
+            node.Blocks2.RemoveAll(x => block2s.Contains(x));
+            return block2s;
+        }
+
+        #endregion Private Methods.
     }
 }

@@ -1,15 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using FingerSearchTree;
+using GroupAndComponent;
 using Nodes;
 
 namespace Blocks
 {
     public class Block2
     {
-        public bool IsFull => Degree == Helpers.BiP(Node.Level) + Helpers.RiP(Node.Level - 1);
+        public bool IsFull => Helpers.Ai(Node.Level) <= Degree && Degree <= Helpers.BiP(Node.Level) + Helpers.RiP(Node.Level - 1);
 
-        public bool IsInvariant3Maintained => Helpers.Ai(Node.Level) <= Degree && Degree <= Helpers.BiP(Node.Level) + Helpers.RiP(Node.Level - 1);
+        public bool Pending { get; set; } = false;
 
         public int Degree { get => Blocks1.Sum(x => x.Degree); }
 
@@ -22,6 +24,8 @@ namespace Blocks
         public Block2 Left { get; set; } = null;
 
         public Block2 Right { get; set; } = null;
+
+        public Group Group { get; set; } = null;
 
         /// <summary>
         /// Creates an empty Block2
@@ -36,17 +40,6 @@ namespace Blocks
         {
             Blocks1.Add(block1);
             block1.Father = this;
-
-            Blocks1.Add(block1.Mate);
-            block1.Mate.Father = this;
-
-            Mate = new Block2
-            {
-                Mate = this,
-                Left = this
-            };
-
-            Right = Mate;
         }
 
         /// <summary>
@@ -56,12 +49,9 @@ namespace Blocks
         /// <param name="right">The block1 that needs to be inserted.</param>
         internal void Add(Block1 left, Block1 right)
         {
+            bool wasFull = IsFull;
             // find position to insert.
-            int position = Blocks1.FindIndex(x => x == left);
-            position++;
-
-            // actually insert in the list.
-            Blocks1.Insert(position, right);
+            Blocks1.Insert(Blocks1.FindIndex(x => x == left) + 1, right);
             right.Father = this;
 
             // Make sure the left/right pointers are set correctly.
@@ -75,37 +65,135 @@ namespace Blocks
                 aux.Left = right;
             }
 
-            if (IsInvariant3Maintained == false)
+            if (Pending)
             {
-                int transferredPosition = -1;
-                if (Mate == Right)
-                    transferredPosition = Blocks1.Count - 1;
-                else
-                    transferredPosition = 0;
+                if (IsFull)
+                {
+                    Pending = false;
+                    Mate = null;
+                }
+                else return;
+            }
 
-                Mate.Transfer(Blocks1[transferredPosition], transferredPosition != 0);
-                Blocks1.RemoveAt(transferredPosition);
+            if (wasFull)
+            {
+                if (Mate == null)
+                {
+                    if (Right != null && Right.Pending && Right.Mate == this)
+                    {
+                        Right.Pending = false;
+                        Mate = Right;
+                    }
+                    else if (Left != null && Left.Pending && Left.Mate == this)
+                    {
+                        Left.Pending = false;
+                        Mate = Left;
+                    }
+                }
+
+                int transferredPosition = 0;
+                if (Mate != Left)
+                    transferredPosition = Blocks1.Count - 1;
+
+                if (Invariant5Holds(Blocks1[transferredPosition]))
+                {
+                    if(Mate == null)
+                    {
+                        Mate = new Block2()
+                        {
+                            Mate = this
+                        };
+                        Node.Add(this, Mate);
+                    }
+
+                    Block1 transferredNode = Blocks1[transferredPosition];
+                    Remove(transferredNode);
+                    Mate.Transfer(transferredNode, transferredPosition != 0);
+                }
             }
 
             if (IsFull && Mate != null && Mate.IsFull)
             {
-                //if (Invariant5Holds()) // TODO
-                //{
                 Block2 oldMate = Mate;
 
-                Mate = new Block2
+                if (Mate == Right)
                 {
-                    Mate = this
-                };
-                Node.Add(this, Mate);
+                    if (Left.Pending && Left.Mate == this)
+                    {
+                        Mate = Left;
+                        Mate.Pending = false;
+                    }
+                    else
+                    {
+                        Mate = new Block2
+                        {
+                            Mate = this
+                        };
+                        Node.Add(this, Mate);
+                    }
 
-                oldMate.Mate = new Block2
+                    if (oldMate.Right.Pending && oldMate.Right.Mate == oldMate)
+                    {
+                        oldMate.Mate = oldMate.Right;
+                        oldMate.Mate.Pending = false;
+                    }
+                    else
+                    {
+                        oldMate.Mate = new Block2
+                        {
+                            Mate = oldMate
+                        };
+                        oldMate.Node.Add(oldMate, oldMate.Mate);
+                    }
+                }
+                else
                 {
-                    Mate = oldMate
-                };
-                oldMate.Node.Add(oldMate, oldMate.Mate);
-                //}
+                    if (Right.Pending && Right.Mate == this)
+                    {
+                        Mate = Right;
+                        Mate.Pending = false;
+                    }
+                    else
+                    {
+                        Mate = new Block2()
+                        {
+                            Mate = this
+                        };
+                        Node.Add(this, Mate);
+                    }
+
+                    if (oldMate.Left.Pending && oldMate.Left.Mate == oldMate)
+                    {
+                        oldMate.Mate = oldMate.Left;
+                        oldMate.Mate.Pending = false;
+                    }
+                    else
+                    {
+                        oldMate.Mate = new Block2
+                        {
+                            Mate = oldMate
+                        };
+                        oldMate.Node.Add(oldMate, oldMate.Mate);
+                    }
+                }
             }
+        }
+
+        private bool Invariant5Holds(Block1 blockToBeTransferred)
+        {
+            Node firstNode = blockToBeTransferred.Nodes[0];
+            Node lastNode = blockToBeTransferred.Nodes[blockToBeTransferred.Nodes.Count - 1];
+
+            Group firstGroup = firstNode.Group;
+            Group lastGroup = lastNode.Group;
+
+            if (firstGroup.Nodes[0] != firstNode)
+                return false;
+
+            if (lastGroup.Nodes[0] != lastNode)
+                return false;
+
+            return true;
         }
 
         /// <summary>
@@ -120,6 +208,47 @@ namespace Blocks
             else
                 Blocks1.Insert(Blocks1.Count, block1);
             block1.Father = this;
+            // add pointers to left right of this block1.
+        }
+
+        internal void Remove(Block1 e)
+        {
+            bool wasFull = IsFull;
+
+            Blocks1.Remove(e);
+
+            if (e.Left != null)
+                e.Left.Right = e.Right;
+            if (e.Right != null)
+                e.Right.Left = e.Left;
+
+            if (Degree == 0)
+            {
+                Node.Remove(this);
+                if (Pending == false && Mate != null)
+                    Mate.Mate = null;
+                return;
+            }
+
+            if (wasFull == false)
+                return;
+
+            if (Pending)
+                return;
+
+            if (Mate != null)
+                return;
+
+            if (Left.Pending && Left.Mate.Mate == this)
+            {
+                Left.Pending = false;
+                Mate = Left;
+            }
+            else if (Right.Pending && Right.Mate.Mate == this)
+            {
+                Right.Pending = false;
+                Mate = Right;
+            }
         }
     }
 }

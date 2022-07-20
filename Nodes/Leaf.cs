@@ -17,7 +17,6 @@ namespace Nodes
         public Leaf()
         {
             new Node(new Block2(new Block1(this)));
-            Group = new Group(this);
         }
 
         /// <summary>
@@ -27,7 +26,6 @@ namespace Nodes
         public Leaf(int value)
         {
             Value = value;
-            Group = new Group(this);
         }
 
         internal override bool ContainsValue(int value)

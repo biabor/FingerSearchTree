@@ -8,11 +8,13 @@ namespace Blocks
     {
         public bool IsFull { get => Degree == Helpers.Ai(Father.Node.Level); }
 
-        public bool IsInvariant2Maintained { get => Degree <= Helpers.Ai(Father.Node.Level); }
-
         public int Degree { get => Nodes.Count; }
 
         public List<Node> Nodes = new List<Node>();
+
+        public Node OldNode { get; set; } = null;
+
+        public Node NewNode { get; set; } = null;
 
         public Block2 Father { get; set; } = null;
 
@@ -35,29 +37,14 @@ namespace Blocks
         {
             Nodes.Add(node);
             node.Father = this;
-
-            Mate = new Block1
-            {
-                Mate = this,
-                Left = this
-            };
-
-            Right = Mate;
         }
 
-        /// <summary>
-        /// Adds the node right to the right of the node left.
-        /// </summary>
-        /// <param name="left">The node next to which it needs to be inserted.</param>
-        /// <param name="right">The node that needs to be inserted.</param>
         internal void Add(Node left, Node right)
         {
-            // find position to insert.
-            int position = Nodes.FindIndex(x => x == left);
-            position++;
+            bool wasFull = IsFull;
 
-            // actually insert in the list.
-            Nodes.Insert(position, right);
+            // find position to insert.
+            Nodes.Insert(Nodes.FindIndex(x => x == left) + 1, right);
             right.Father = this;
 
             // Make sure the left/right pointers are set correctly.
@@ -71,35 +58,33 @@ namespace Blocks
                 aux.Left = right;
             }
 
-            // If this block1 is overfull then transfer to one node to the mate.
-            if (IsInvariant2Maintained == false)
+            // If this block1 was already full before the insert, then transfer to one node to the mate.
+            if (wasFull)
             {
-                int transferredPosition = -1;
+                if (Mate == null)
+                {
+                    Mate = new Block1()
+                    {
+                        Mate = this
+                    };
+
+                    Father.Add(this, Mate);
+                }
+
+                int transferredPosition = 0;
                 if (Mate == Right)
                     transferredPosition = Nodes.Count - 1;
-                else
-                    transferredPosition = 0;
-
-                Mate.Transfer(Nodes[transferredPosition], transferredPosition != 0);
-                Nodes.RemoveAt(transferredPosition);
+                Node transferredNode = Nodes[transferredPosition];
+                Mate.Remove(transferredNode);
+                Mate.Transfer(transferredNode, transferredPosition != 0);
             }
 
             // if there is no place to insert, break the pair.
             if (IsFull && Mate != null && Mate.IsFull)
             {
                 Block1 oldMate = Mate;
-
-                Mate = new Block1
-                {
-                    Mate = this
-                };
-                Father.Add(this, Mate);
-
-                oldMate.Mate = new Block1
-                {
-                    Mate = oldMate
-                };
-                oldMate.Father.Add(oldMate, oldMate.Mate);
+                Mate = null;
+                oldMate.Mate = null;
             }
         }
 
@@ -115,6 +100,70 @@ namespace Blocks
             else
                 Nodes.Insert(Nodes.Count, node);
             node.Father = this;
+            //Todo set left right pointers of node.
+        }
+
+        internal void Remove(Node e)
+        {
+            bool wasFull = IsFull;
+            Nodes.Remove(e);
+
+            if (e.Left != null)
+                e.Left.Right = e.Right;
+            if (e.Right != null)
+                e.Right.Left = e.Left;
+
+            if (Degree == 0)
+            {
+                Father.Remove(this);
+                if (Mate != null) 
+                    Mate.Mate = null;
+                return;
+            }
+
+            if (wasFull == false)
+                return;
+
+            if (Mate != null)
+            {
+                int transferredPosition = 0;
+                if (Mate == Left)
+                    transferredPosition = Mate.Nodes.Count - 1;
+
+                Node transferedNode = Mate.Nodes[transferredPosition];
+                Mate.Remove(transferedNode);
+                Transfer(transferedNode, transferredPosition != 0);
+            }
+            else if (Right != null && Right.Mate != null)
+            {
+                Node leftmostNodeFromRight = Right.Nodes[0];
+                Right.Remove(leftmostNodeFromRight);
+                Transfer(leftmostNodeFromRight, false);
+            }
+            else if (Right != null)
+            {
+                Mate = Right;
+                Right.Mate = this;
+
+                Node transferedNode = Mate.Nodes[0];
+                Mate.Remove(transferedNode);
+                Transfer(transferedNode, false);
+            }
+            else if (Left != null && Left.Mate != null)
+            {
+                Node rightmostNodeFromLeft = Left.Nodes[Left.Nodes.Count - 1];
+                Left.Remove(rightmostNodeFromLeft);
+                Transfer(rightmostNodeFromLeft, true);
+            }
+            else if(Left != null)
+            {
+                Mate = Left;
+                Left.Mate = this;
+
+                Node transferedNode = Mate.Nodes[Mate.Nodes.Count - 1];
+                Mate.Remove(transferedNode);
+                Transfer(transferedNode, Mate.Nodes.Count - 1 != 0);
+            }
         }
     }
 }

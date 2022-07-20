@@ -21,19 +21,17 @@ namespace GroupAndComponent
 
         public Group Mate { get; set; } = null;
 
+        public Block1 Incr { get; set; } = null;
+
+        public Group Left { get; set; } = null;
+
+        public Group Right { get; set; } = null;
+
         public Group(Node node)
         {
             Nodes.Add(node);
-            Component = new Component(this);
             if (node.FatherNode != null)
                 Block2 = node.Father.Father;
-        }
-
-        public void Add(Node node)
-        {
-            Nodes.Add(node);
-            node.Group = this;
-            node.IsUnderContruction = true;
         }
     }
 }
