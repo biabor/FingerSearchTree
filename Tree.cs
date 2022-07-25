@@ -42,7 +42,7 @@ namespace FingerSearchTree
 
             Node r = Find(newLeaf.Father);
             int i = r.Level + 1;
-            bool isRSecureInvterval = Helpers.Fi(i-1) * 4 < r.Degree && r.Degree < Helpers.BiP(i-1);
+            bool isRSecureInvterval = Helpers.Fi(i - 1) * 4 < r.Degree && r.Degree < Helpers.BiP(i - 1);
 
             Group rPP = MultiBreak(r.Group);
             Group rP = rPP.Left;
@@ -50,7 +50,7 @@ namespace FingerSearchTree
             if (isRSecureInvterval)
                 rPP.IsSplitGroup = true;
 
-            if(rPP.Nodes.Count == 1 && rPP.Nodes[0].Blocks2.Count == 1 && rPP.Nodes[0].Blocks2[0].Blocks1.Count == 1)
+            if (rPP.Nodes.Count == 1 && rPP.Nodes[0].Blocks2.Count == 1 && rPP.Nodes[0].Blocks2[0].Blocks1.Count == 1)
             {
                 if (rPP.Degree + rP.Degree <= 4 * Helpers.Fi(i))
                     GFuse(rPP, rP);
@@ -109,59 +109,36 @@ namespace FingerSearchTree
         {
             g.Valid = false;
             if (g.IsSplitGroup)
-            {
                 g.Component.Valid = false;
-                /// Adds all the new nodes to the component in which their father group z belongs?
-                return g;
-            }
-            else
-            {
-                // TODO break all components rooted at nodes inside this fusion group simultaneously and in constant time.
-                //foreach(Node n in g.Nodes)
-                //{
-                //    if (n.Component.Root == n)
-                //        n.Component.Valid = false;
-                //}
-                //g.Nodes.ForEach(n => { if (n.Component.Root == n) n.Component.Valid = false; });
-
-                if (g.Mate != null && g.Mate.Valid == false)
-                {
-                    MultiBreak(g.Mate);
-                }
-
-                Node node = g.Nodes[0];
-                //node.Component = node.FatherNode.Component; // ???
-                g.Component = node.Component;
-                return g;
-            } 
+            else if (g.Mate != null && g.Mate.Valid == false)
+                MultiBreak(g.Mate);
+            g.Component = g.Block2.Node.Component;
+            return g;
         }
 
         private static void GFuse(Group g, Group gP)
         {
-            //if (g.Degree > gP.Degree)
-            //    GFuse(gP, g);
-
-            // TODO transfer block2 p of g to gP in constant time
-
-
             g.Mate = gP;
             gP.Mate = g;
-
-            if (gP.Right == g)
+            if (g.Degree < Helpers.Fi(g.Nodes[0].Level) && g.IsSplitGroup == false)
             {
-                // TODO gP.Incr = g.LeftMostBlock1
+                if (g.Left == gP)
+                    gP.Incr = g.Nodes[0].Blocks2[0].Blocks1[0];
+                else
+                    gP.Incr = g.Nodes[g.Nodes.Count - 1]
+                        .Blocks2[g.Nodes[g.Nodes.Count - 1].Blocks2.Count - 1]
+                        .Blocks1[g.Nodes[g.Nodes.Count - 1].Blocks2[g.Nodes[g.Nodes.Count - 1].Blocks2.Count - 1].Blocks1.Count - 1];
             }
-            else
+            else if(gP.Degree < Helpers.Fi(gP.Nodes[0].Level) && gP.IsSplitGroup == false)
             {
-                // TODO gP.Incr = g.RightMostBlock1
+                if (gP.Left == g)
+                    g.Incr = gP.Nodes[0].Blocks2[0].Blocks1[0];
+                else
+                    g.Incr = gP.Nodes[gP.Nodes.Count - 1]
+                        .Blocks2[gP.Nodes[gP.Nodes.Count - 1].Blocks2.Count - 1]
+                        .Blocks1[gP.Nodes[gP.Nodes.Count - 1].Blocks2[gP.Nodes[gP.Nodes.Count - 1].Blocks2.Count - 1].Blocks1.Count - 1];
+
             }
-
-            // More specifically, fields oldnode and newnode of blocks1 and field group of the nodes are updated incrementally
-            // gP will not participate in a new Gfuse operation as long as the incremental transfer contninues.
-            // When the transfer ends, g is discarded and gP.mate as well as gP.incr are set to null.
-
-            // When GFuse involves a normal singleton group gP and a small group g, the node under construction will be the singleton node inside gP.
-            // In this way, there is no need to update the fields of blocks1 inside the only node of gP.
         }
 
         private static void GShare(Group g, Group gP)
@@ -199,7 +176,7 @@ namespace FingerSearchTree
 
         private static void GAdd(Node v, Group g)
         {
-            if(v.Group != null)
+            if (v.Group != null)
                 v.Group.Nodes.Remove(v);
             v.Group = g;
             v.Group.Nodes.Add(v);
