@@ -100,7 +100,8 @@ namespace Blocks
             else
                 Nodes.Insert(Nodes.Count, node);
             node.Father = this;
-            //Todo set left right pointers of node.
+            if(node.Left != null) node.Left.Right = node;
+            if(node.Right != null) node.Right.Left = node;
         }
 
         internal void Remove(Node e)

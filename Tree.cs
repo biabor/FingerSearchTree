@@ -144,11 +144,27 @@ namespace FingerSearchTree
         private static void GShare(Group g, Group gP)
         {
             MultiBreak(gP);
-            if (g.Degree > gP.Degree)
-                GFuse(gP, g);
-            //Move a block2 pP from gP to g incrementally, in order to update the corresponding pointer fields of blocks1 and nodes.
-            //insert block1 q (the only one of g)to pP
-            //When the transfer ends, pointers g.Mate, gP.Mate are set to null
+            g.Mate = gP;
+            gP.Mate = g;
+            if (g.Degree < Helpers.Fi(g.Nodes[0].Level) && g.IsSplitGroup == false)
+            {
+                if (gP.Left == g)
+                    g.Incr = gP.Nodes[0].Blocks2[0].Blocks1[0];
+                else
+                    g.Incr = gP.Nodes[gP.Nodes.Count - 1]
+                        .Blocks2[gP.Nodes[gP.Nodes.Count - 1].Blocks2.Count - 1]
+                        .Blocks1[gP.Nodes[gP.Nodes.Count - 1].Blocks2[gP.Nodes[gP.Nodes.Count - 1].Blocks2.Count - 1].Blocks1.Count - 1];
+            }
+            else
+            {
+
+                if (g.Left == gP)
+                    gP.Incr = g.Nodes[0].Blocks2[0].Blocks1[0];
+                else
+                    gP.Incr = g.Nodes[g.Nodes.Count - 1]
+                        .Blocks2[g.Nodes[g.Nodes.Count - 1].Blocks2.Count - 1]
+                        .Blocks1[g.Nodes[g.Nodes.Count - 1].Blocks2[g.Nodes[g.Nodes.Count - 1].Blocks2.Count - 1].Blocks1.Count - 1];
+            }
         }
 
         private static Node Split(Node node)
@@ -169,6 +185,7 @@ namespace FingerSearchTree
             }
 
             node.Father.Add(node, nodeP);
+            nodeP.Component = node.Component;
 
             GAdd(nodeP, node.Group);
             return nodeP;

@@ -208,7 +208,8 @@ namespace Blocks
             else
                 Blocks1.Insert(Blocks1.Count, block1);
             block1.Father = this;
-            // add pointers to left right of this block1.
+            if (block1.Left != null) block1.Left.Right = block1;
+            if (block1.Right != null) block1.Right.Left = block1;
         }
 
         internal void Remove(Block1 e)
