@@ -63,21 +63,31 @@ namespace Nodes
 
         public Group Group { get; set; } = null;
 
-        public Component Component { get; set; } = null;
+        private Component component_ = null;
+
+        public Component Component
+        {
+            get
+            {
+                if (Group.IsSplitGroup) return Group.Component;
+                else return component_;
+            }
+            set 
+            {
+                component_ = value;
+                if (Group.IsSplitGroup) Group.Component = value;
+            }
+        }
 
         public Node() { }
 
-        /// <summary>
-        /// Creates the father node/root of the initial tree.
-        /// </summary>
-        /// <param name="block2">block2 it contains</param>
         public Node(Block2 block2)
         {
             Blocks2.Add(block2);
             block2.Node = this;
 
             Component = new Component(this);
-            Group = new Group(this);
+            Group = new Group() { Block2 = Father?.Father};
             Level = Blocks2[0].Blocks1[0].Nodes[0].Level + 1;
         }
 
@@ -105,12 +115,12 @@ namespace Nodes
                 if (block2.Blocks1.Count == 0)
                     continue;
 
-                Block1 block1 = block2.Blocks1[block2.Blocks1.Count - 1];
-                if (block1.Nodes.Count == 0)
+                Block1 block1Last = block2.Blocks1[block2.Blocks1.Count - 1];
+                if (block1Last.Nodes.Count == 0)
                     continue;
 
-                Node node = block1.Nodes[block1.Nodes.Count - 1];
-                if (node.Max < value)
+                Node nodeLast = block1Last.Nodes[block1Last.Nodes.Count - 1];
+                if (nodeLast.Max < value)
                     continue;
 
                 foreach (Block1 bl1 in block2.Blocks1)
@@ -118,15 +128,15 @@ namespace Nodes
                     if (bl1.Nodes.Count == 0)
                         continue;
 
-                    node = bl1.Nodes[bl1.Nodes.Count - 1];
-                    if (node.Max < value)
+                    nodeLast = bl1.Nodes[bl1.Nodes.Count - 1];
+                    if (nodeLast.Max < value)
                         continue;
 
                     foreach (Node no in bl1.Nodes)
                     {
                         if (no.ContainsValue(value))
                             return no;
-                        else
+                        else // Make sure this is correctly followed. --- TODO
                             return no.Left;
                     }
                 }
@@ -135,11 +145,6 @@ namespace Nodes
             return null;
         }
 
-        /// <summary>
-        /// Adds the block2 right to the right of the block2 left.
-        /// </summary>
-        /// <param name="left">The block2 next to which it needs to be inserted.</param>
-        /// <param name="right">The block2 that needs to be inserted.</param>
         internal void Add(Block2 left, Block2 right)
         {
             // find position to insert.

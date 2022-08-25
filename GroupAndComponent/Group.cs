@@ -27,11 +27,6 @@ namespace GroupAndComponent
 
         public Group Right { get; set; } = null;
 
-        public Group(Node node)
-        {
-            Nodes.Add(node);
-            if (node.FatherNode != null)
-                Block2 = node.Father.Father;
-        }
+        public Group( ) { }
     }
 }

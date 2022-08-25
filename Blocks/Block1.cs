@@ -24,15 +24,8 @@ namespace Blocks
 
         public Block1 Mate { get; set; } = null;
 
-        /// <summary>
-        /// Creates an empty Block1
-        /// </summary>
         public Block1() { }
 
-        /// <summary>
-        /// Creates the block1 containing the leaf for the initial tree.
-        /// </summary>
-        /// <param name="node">The leaf.</param>
         public Block1(Node node)
         {
             Nodes.Add(node);
@@ -71,49 +64,53 @@ namespace Blocks
                     Father.Add(this, Mate);
                 }
 
-                int transferredPosition = 0;
-                if (Mate == Right)
-                    transferredPosition = Nodes.Count - 1;
-                Node transferredNode = Nodes[transferredPosition];
-                Mate.Remove(transferredNode);
-                Mate.Transfer(transferredNode, transferredPosition != 0);
+                TransferToMate();
             }
 
-            // if there is no place to insert, break the pair.
+            // if both become full, break the pair.
             if (IsFull && Mate != null && Mate.IsFull)
             {
-                Block1 oldMate = Mate;
+                Mate.Mate = null;
                 Mate = null;
-                oldMate.Mate = null;
             }
         }
 
-        /// <summary>
-        /// Mades the transfer by adding the node in this block1.
-        /// </summary>
-        /// <param name="node">Node to be added</param>
-        /// <param name="atStart">bool saying if the node should be inserted in the beginning or at the end of the list.</param>
-        internal void Transfer(Node node, bool atStart)
+        internal void TransferToMate()
         {
-            if (atStart)
-                Nodes.Insert(0, node);
+            //Just remove the node from this block1 and add it into the mate. 
+            // The father pointer is updates, but the rest of them are not needed, since the transfer is made between mates, and since the nodes keep the left-right pointers even through the block1 bounds. 
+            if(Mate == Right)
+            {
+                Node transferredNode = Nodes[Nodes.Count - 1]; // if the mate is on the right, then we transfer the last node to its mate, so that we can keep the order of the nodes unchanged.
+                Nodes.Remove(transferredNode);
+                Mate.Nodes.Insert(0, transferredNode);
+
+                transferredNode.Father = Mate;                
+            }
             else
-                Nodes.Insert(Nodes.Count, node);
-            node.Father = this;
-            if(node.Left != null) node.Left.Right = node;
-            if(node.Right != null) node.Right.Left = node;
+            {
+                Node transferredNode = Nodes[0]; //if the mate is on the left, then we transfer the first node to its mate, so that we can keep the order of the nodes unchanged.
+                Nodes.Remove(transferredNode);
+                Mate.Nodes.Add(transferredNode);
+
+                transferredNode.Father = Mate;
+            }
         }
 
         internal void Remove(Node e)
         {
             bool wasFull = IsFull;
+
+            // Remove it from the list of nodes.
             Nodes.Remove(e);
 
+            // Sort the left right pointers. (in order for them not to point to e)
             if (e.Left != null)
                 e.Left.Right = e.Right;
             if (e.Right != null)
                 e.Right.Left = e.Left;
 
+            // If it becomes empty, remove this block1 from its father, and also make sure that the Mate is announced. 
             if (Degree == 0)
             {
                 Father.Remove(this);
@@ -122,48 +119,40 @@ namespace Blocks
                 return;
             }
 
+            // If it is not the full mate in the pair of blocks1, then there is no need to perform the transfers.
             if (wasFull == false)
                 return;
 
+            //If it was the full mate, then we try to transfer a node from its mate, as long as it has one.
             if (Mate != null)
             {
-                int transferredPosition = 0;
-                if (Mate == Left)
-                    transferredPosition = Mate.Nodes.Count - 1;
-
-                Node transferedNode = Mate.Nodes[transferredPosition];
-                Mate.Remove(transferedNode);
-                Transfer(transferedNode, transferredPosition != 0);
+                Mate.TransferToMate();
             }
-            else if (Right != null && Right.Mate != null)
-            {
-                Node leftmostNodeFromRight = Right.Nodes[0];
-                Right.Remove(leftmostNodeFromRight);
-                Transfer(leftmostNodeFromRight, false);
-            }
-            else if (Right != null)
+            else if(Right != null && Right.Mate == null) // If there is no mate but there is a right block1 that also has no mate, we make the pair and then transfer.
             {
                 Mate = Right;
                 Right.Mate = this;
-
-                Node transferedNode = Mate.Nodes[0];
-                Mate.Remove(transferedNode);
-                Transfer(transferedNode, false);
+                Mate.TransferToMate();
             }
-            else if (Left != null && Left.Mate != null)
-            {
-                Node rightmostNodeFromLeft = Left.Nodes[Left.Nodes.Count - 1];
-                Left.Remove(rightmostNodeFromLeft);
-                Transfer(rightmostNodeFromLeft, true);
-            }
-            else if(Left != null)
+            else if(Left != null && Left.Mate == null) // If there is no mate but there is a left block1 that also has no mate, we make a pair and transfer.
             {
                 Mate = Left;
                 Left.Mate = this;
-
-                Node transferedNode = Mate.Nodes[Mate.Nodes.Count - 1];
-                Mate.Remove(transferedNode);
-                Transfer(transferedNode, Mate.Nodes.Count - 1 != 0);
+                Mate.TransferToMate();
+            }
+            else if(Right != null) //If we still cannot make a pair, then we remove the first node from right, and add it to this block1
+            {
+                Node sharedNode = Right.Nodes[0];
+                Right.Remove(sharedNode);
+                Node lastNode = Nodes[Nodes.Count - 1];
+                Add(lastNode, sharedNode);
+            }
+            else if(Left != null) // If there is no right then we try the same thing with left.
+            {
+                Node sharedNode = Left.Nodes[Left.Nodes.Count - 1];
+                Left.Remove(sharedNode);
+                Node lastNodeInLeft = Left.Nodes[Left.Nodes.Count - 1]; //Because this node is in the left block1 it will not be found, and while adding the node, it will be added on position 0. Also since it is the last node in left, the left,right pointers are sill the ones that we need for adding.
+                Add(lastNodeInLeft, sharedNode);
             }
         }
     }
