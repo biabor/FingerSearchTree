@@ -75,7 +75,7 @@ namespace Nodes
             set 
             {
                 component_ = value;
-                if (Group.IsSplitGroup) Group.Component = value;
+                Group.Component = value;
             }
         }
 
@@ -85,10 +85,10 @@ namespace Nodes
         {
             Blocks2.Add(block2);
             block2.Node = this;
-
-            Component = new Component(this);
-            Group = new Group() { Block2 = Father?.Father};
             Level = Blocks2[0].Blocks1[0].Nodes[0].Level + 1;
+
+            Group = new Group(this);
+            Component = new Component(this);
         }
 
         internal virtual bool ContainsValue(int value)
@@ -137,33 +137,68 @@ namespace Nodes
                         if (no.ContainsValue(value))
                             return no;
                         else // Make sure this is correctly followed. --- TODO
-                            return no.Left;
+                            if(no.Max > value)
+                                return no.Left;
                     }
                 }
             }
 
-            return null;
+            return Blocks2[Blocks2.Count - 1].Blocks1[Blocks2[Blocks2.Count - 1].Blocks1.Count - 1].Nodes[Blocks2[Blocks2.Count - 1].Blocks1[Blocks2[Blocks2.Count - 1].Blocks1.Count - 1].Nodes.Count - 1];
         }
 
-        internal void Add(Block2 left, Block2 right)
+        internal void Add(Block2 left, Block2 middle)
         {
             // find position to insert.
             int position = Blocks2.FindIndex(x => x == left);
             position++;
 
             // actually insert in the list.
-            Blocks2.Insert(position, right);
-            right.Node = this;
+            Blocks2.Insert(position, middle);
+            middle.Node = this;
 
             // Make sure the left/right pointers are set correctly.
-            Block2 aux = left.Right;
-            left.Right = right;
-            right.Left = left;
+            Block2 right = left.Right;
+            left.Right = middle;
+            middle.Left = left;
 
-            if (aux != null)
+            if (right != null)
             {
-                right.Right = aux;
-                aux.Left = right;
+                middle.Right = right;
+                right.Left = middle;
+            }
+
+            middle.Group = left.Group;
+        }
+
+        internal void Add(int position, Block2 middle)
+        {
+            // actually insert in the list.
+            Blocks2.Insert(position, middle);
+            middle.Node = this;
+
+            if (position == 0)
+            {
+                if (Blocks2.Count > 1)
+                {
+                    Block2 right = Blocks2[position + 1];
+                    middle.Right = right;
+                    right.Left = middle;
+                }
+            }
+            else if (position == Blocks2.Count)
+            {
+                Block2 left = Blocks2[position - 1];
+                left.Right = middle;
+                middle.Left = left;
+            }
+            else
+            {
+                Block2 left = Blocks2[position - 1];
+                Block2 right = Blocks2[position + 1];
+                left.Right = middle;
+                middle.Right = right;
+                right.Left = middle;
+                middle.Left = left;
             }
         }
 
@@ -175,6 +210,8 @@ namespace Nodes
                 e.Left.Right = e.Right;
             if (e.Right != null)
                 e.Right.Left = e.Left;
+            e.Left = null;
+            e.Right = null;
 
         }
     }
