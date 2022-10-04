@@ -31,7 +31,7 @@ namespace FingerSearchTree
 
         public static long RiP (int level)
         {
-            return 128 / 16;//Bi(level) / BiP(level); 
+            return 128 / 32;//Bi(level) / BiP(level); 
         }
     }
 }

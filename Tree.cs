@@ -75,7 +75,7 @@ namespace FingerSearchTree
                 else if (secondBlock2.Degree > firstBlock2.Degree)
                 {
                     Block1 toBeMoved = firstBlock2.Blocks1[firstBlock2.Blocks1.Count - 1];
-                    firstBlock2.Remove(toBeMoved,true);
+                    firstBlock2.Remove(toBeMoved, true);
                     secondBlock2.Add(0, toBeMoved);
                 }
             }
@@ -98,8 +98,8 @@ namespace FingerSearchTree
 
             if (rGroup.Degree <= Helpers.Ai(r.Level)) //if it contains one block1
             {
-                Group rLeft = rGroup.Left;
-                Group rRight = rGroup.Right;
+                Group rLeft = rGroup.Left(r);
+                Group rRight = rGroup.Right(r);
 
                 if (rLeft != null)
                 {
@@ -155,7 +155,7 @@ namespace FingerSearchTree
                     }
 
                     Block2 pZ = rGroup.Block2;
-                    Block2 pZP = pZ.Mate;
+                    Block2 pZP = pZ.Mate ?? pZ.Right ?? pZ.Left;
 
                     if (uP.Degree > 8 * Helpers.Fi(uP.Level) && uP.Blocks2.Count > 1)
                     {
@@ -166,7 +166,7 @@ namespace FingerSearchTree
                     }
                     else
                     {
-                        if (pZ.Degree > Helpers.Fi(uP.Level) && pZP.Degree < Helpers.Fi(uP.Level))
+                        if (pZ.Degree > Helpers.Fi(uP.Level) && pZP != null && pZP.Degree < Helpers.Fi(uP.Level))
                             Transfer(pZ, pZP);
                         else
                         {
@@ -233,7 +233,7 @@ namespace FingerSearchTree
 
                     if (z.Degree < Helpers.Fi(z.Level))
                     {
-                        Group y = z.Right;
+                        Group y = z.Right(uP);
                         if (y != null && y.Block2 == qX.Father && z.Degree + y.Degree < 4 * Helpers.Fi(uP.Level) && y.Mate == null)
                         {
                             int temp = y.Degree;
@@ -242,7 +242,7 @@ namespace FingerSearchTree
 
                             if (y.Degree < Helpers.Fi(y.Level) && temp < Helpers.Ai(y.Level))
                             {
-                                Group w = y.Left;
+                                Group w = y.Left(uP);
                                 if (w != null && w.Block2 == qX.Father && y.Degree + w.Degree < 4 * Helpers.Fi(y.Level) && w.Mate == null)
                                 {
                                     temp = w.Degree;
@@ -251,7 +251,7 @@ namespace FingerSearchTree
 
                                     if (w.Degree < Helpers.Fi(w.Level) && temp < Helpers.Ai(w.Level))
                                     {
-                                        Group t = w.Right;
+                                        Group t = w.Right(uP);
                                         if (t != null && t.Block2 == qX.Father && w.Degree + t.Degree < 4 * Helpers.Fi(w.Level) && t.Mate == null)
                                         {
                                             temp = t.Degree;
@@ -260,7 +260,7 @@ namespace FingerSearchTree
 
                                             if (t.Degree < Helpers.Fi(t.Level) && temp < Helpers.Ai(t.Level))
                                             {
-                                                Group tP = t.Left;
+                                                Group tP = t.Left(uP);
                                                 if (tP != null && tP.Block2 == qX.Father && t.Degree + tP.Degree < 4 * Helpers.Fi(t.Level) && tP.Mate == null)
                                                 {
                                                     GFuse(t, tP);
@@ -268,32 +268,32 @@ namespace FingerSearchTree
                                                 }
                                             }
                                         }
-                                        else if (w.Left != null && w.Left.Block2 == qX.Father && w.Degree + w.Left.Degree < 4 * Helpers.Fi(w.Level) && w.Left.Mate == null)
+                                        else if (w.Left(uP) != null && w.Left(uP).Block2 == qX.Father && w.Degree + w.Left(uP).Degree < 4 * Helpers.Fi(w.Level) && w.Left(uP).Mate == null)
                                         {
-                                            Group tP = w.Left;
+                                            Group tP = w.Left(uP);
                                             GFuse(w, tP);
                                             qX.Remove(w.Nodes[0]);
                                         }
                                     }
                                 }
-                                else if (y.Right != null && y.Right.Block2 == qX.Father && y.Degree + y.Right.Degree < 4 * Helpers.Fi(y.Level) && y.Right.Mate == null)
+                                else if (y.Right(uP) != null && y.Right(uP).Block2 == qX.Father && y.Degree + y.Right(uP).Degree < 4 * Helpers.Fi(y.Level) && y.Right(uP).Mate == null)
                                 {
-                                    Group t = y.Right;
+                                    Group t = y.Right(uP);
                                     GFuse(y, t);
                                     qX.Remove(y.Nodes[0]);
                                 }
                             }
                         }
-                        else if (z.Left != null && z.Left.Block2 == qX.Father && z.Degree + z.Left.Degree < 4 * Helpers.Fi(uP.Level) && z.Left.Mate == null)
+                        else if (z.Left(uP) != null && z.Left(uP).Block2 == qX.Father && z.Degree + z.Left(uP).Degree < 4 * Helpers.Fi(uP.Level) && z.Left(uP).Mate == null)
                         {
-                            Group w = z.Left;
+                            Group w = z.Left(uP);
                             int temp = w.Degree;
                             w = GFuse(z, w);
                             qX.Remove(z.Nodes[0]);
 
                             if (w.Degree < Helpers.Fi(w.Level) && temp < Helpers.Ai(w.Level))
                             {
-                                Group tP = w.Left;
+                                Group tP = w.Left(uP);
                                 if (tP != null && tP.Block2 == qX.Father && w.Degree + tP.Degree < 4 * Helpers.Fi(w.Level) && tP.Mate == null)
                                 {
                                     GFuse(w, tP);
@@ -311,7 +311,7 @@ namespace FingerSearchTree
                                 z.Incr.OldNode = z.Incr.NewNode;
                             z.Incr.OldNode.Group = z;
                             z.Incr.NewNode = z.Incr.Father.Node;
-                            if (z.Left == g)
+                            if (z.Left(uP) == g)
                             {
                                 if (z.Incr.Father.Group == z)
                                 {
@@ -368,7 +368,7 @@ namespace FingerSearchTree
                                 g.Incr.OldNode = g.Incr.NewNode;
                             g.Incr.OldNode.Group = g;
                             g.Incr.NewNode = g.Incr.Father.Node;
-                            if (g.Left == z)
+                            if (g.Left(uP) == z)
                             {
                                 if (g.Incr.Father.Group == g)
                                 {
@@ -466,7 +466,7 @@ namespace FingerSearchTree
             }
         }
 
-        private static bool ContainsAtLeastTwoBlock2Pairs(Node u)
+        public static bool ContainsAtLeastTwoBlock2Pairs(Node u)
         {
             switch (u.Blocks2.Count)
             {
@@ -532,7 +532,7 @@ namespace FingerSearchTree
             }
             else
             {
-                f = father.OldNode.Group.Valid ? father.OldNode : father.NewNode == null ? father.Father.Node : father.NewNode;
+                f = father.OldNode.Group.Valid ? father.OldNode : father.NewNode ?? father.Father.Node;
 
                 if (f.Group.Valid == false)
                 {
@@ -579,7 +579,7 @@ namespace FingerSearchTree
                 }
                 else
                     g.Nodes[0].Component = new Component(g.Nodes[0]);
-                
+
             }
         }
 
@@ -591,7 +591,7 @@ namespace FingerSearchTree
             if (g.Nodes.Count == 1 && gP.Degree <= Helpers.Ai(gP.Level))
             {
                 //Move the only block1 from gp to g.
-                if (g.Left == gP)
+                if (g.Left(g.Nodes[0]) == gP)
                 {
                     Block2 toBeMovedIn = g.Nodes[0].Blocks2[0];
                     Block2 toBeMovedFrom = gP.Nodes[gP.Nodes.Count - 1].Blocks2[gP.Nodes[gP.Nodes.Count - 1].Blocks2.Count - 1];
@@ -620,7 +620,7 @@ namespace FingerSearchTree
             else if (gP.Nodes.Count == 1 && g.Degree <= Helpers.Ai(g.Level))
             {
                 //Move the only block1 from g to gp.
-                if (gP.Left == g)
+                if (gP.Left(gP.Nodes[0]) == g)
                 {
                     Block2 toBeMovedIn = gP.Nodes[0].Blocks2[0];
                     Block2 toBeMovedFrom = g.Nodes[g.Nodes.Count - 1].Blocks2[g.Nodes[g.Nodes.Count - 1].Blocks2.Count - 1];
@@ -652,7 +652,7 @@ namespace FingerSearchTree
 
             if (g.Degree <= Helpers.Fi(g.Level))
             {
-                if (g.Left == gP)
+                if (g.Left(g.Nodes[0]) == gP)
                 {
                     Node toBeMovedFrom = g.Nodes[0];
                     Node toBeMovedTo = gP.Nodes[gP.Nodes.Count - 1];
@@ -681,7 +681,7 @@ namespace FingerSearchTree
             }
             else if (gP.Degree <= Helpers.Fi(g.Level))
             {
-                if (gP.Left == g)
+                if (gP.Left(gP.Nodes[0]) == g)
                 {
                     Node toBeMovedFrom = gP.Nodes[0];
                     Node toBeMovedTo = g.Nodes[g.Nodes.Count - 1];
@@ -725,7 +725,7 @@ namespace FingerSearchTree
                 //Move a block2 from gp to g.
                 //Add the block1 from g to that block2.
                 //Set the incr pointer of that block2.
-                if (g.Left == gP)
+                if (g.Left(g.Nodes[0]) == gP)
                 {
                     Node toBeMovedFrom = gP.Nodes[gP.Nodes.Count - 1];
                     Node toBeMovedTo = g.Nodes[0];
@@ -767,7 +767,7 @@ namespace FingerSearchTree
                 //Move a block2 from g to gp.
                 //Add the block1 from gp to that block2.
                 //Set the incr pointer of that block2.
-                if (gP.Left == g)
+                if (gP.Left(gP.Nodes[0]) == g)
                 {
                     Node toBeMovedFrom = gP.Nodes[g.Nodes.Count - 1];
                     Node toBeMovedTo = g.Nodes[0];
@@ -855,7 +855,6 @@ namespace FingerSearchTree
                 new Node(new Block2(new Block1(node)));
                 node.Father.OldNode = node.FatherNode;
                 node.Father.Father.Group = node.FatherNode.Group;
-                node.Group.Block2 = node.Father.Father;
             }
 
             node.Father.Add(node, newNode);
@@ -873,16 +872,22 @@ namespace FingerSearchTree
 
         private static void Transfer(Block2 from, Block2 to)
         {
+            if (from.Blocks1.Count == 0)
+            {
+                from.Node.Remove(from);
+                return;
+            }
+
             if (from.Right == to)
             {
                 Block1 what = from.Blocks1[from.Blocks1.Count - 1];
-                from.Remove(what,true);
+                from.Remove(what, true);
                 to.Add(0, what);
             }
             else
             {
                 Block1 what = from.Blocks1[0];
-                from.Remove(what,true);
+                from.Remove(what, true);
                 to.Add(to.Blocks1.Count, what);
             }
         }

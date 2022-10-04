@@ -21,7 +21,7 @@ namespace FingerSearchTree
 
         private void addBtn__Click(object sender, EventArgs e)
         {
-            test();
+            Test();
             //    int value = int.Parse(textBox1.Text);
             //    lastLeaf = Tree.Search(lastLeaf, value);
             //    if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
@@ -36,7 +36,7 @@ namespace FingerSearchTree
                 lastLeaf = Tree.Delete(lastLeaf);
         }
 
-        private void test()
+        private void Test()
         {
             int value = -100000;
             lastLeaf = Tree.Search(lastLeaf, value);
@@ -2575,14 +2575,7 @@ namespace FingerSearchTree
 
             Random rnd = new Random();
             value = rnd.Next();
-            while (lastLeaf.FatherNode.Degree <= Helpers.Bi(1))
-            {
-                lastLeaf = Tree.Search(lastLeaf, value);
-                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
-                    lastLeaf = Tree.Insert(lastLeaf, value);
-                value = rnd.Next();
-            }
-            while (lastLeaf.FatherNode.FatherNode.Blocks2.Count <=2)
+            while (lastLeaf.FatherNode.FatherNode == null)
             {
                 lastLeaf = Tree.Search(lastLeaf, value);
                 if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
@@ -2590,6 +2583,13 @@ namespace FingerSearchTree
                 value = rnd.Next();
             }
             while (lastLeaf.FatherNode.FatherNode.FatherNode == null)
+            {
+                lastLeaf = Tree.Search(lastLeaf, value);
+                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
+                    lastLeaf = Tree.Insert(lastLeaf, value);
+                value = rnd.Next();
+            }
+            while (lastLeaf.FatherNode.FatherNode.FatherNode.FatherNode == null)
             {
                 lastLeaf = Tree.Search(lastLeaf, value);
                 if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))

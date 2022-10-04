@@ -208,6 +208,7 @@ namespace Blocks
             }
             e.Left = null;
             e.Right = null;
+            e.Father = null;
 
             // If it becomes empty, remove this block1 from its father, and also make sure that the Mate is announced. 
             if (Degree == 0)

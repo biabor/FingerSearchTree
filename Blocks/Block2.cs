@@ -98,7 +98,7 @@ namespace Blocks
                         Node.Add(this, Mate);
                     }
                 }
-
+                _ = Mate.IsFull;
                 TransferToMate();
             }
 
@@ -170,7 +170,7 @@ namespace Blocks
                     right.Left = middle;
                 }
             }
-            else if(position == Blocks1.Count - 1)
+            else if (position == Blocks1.Count - 1)
             {
                 Block1 left = Blocks1[position - 1];
                 left.Right = middle;
@@ -192,7 +192,7 @@ namespace Blocks
             if (Mate == Right)
             {
                 Block1 transferredBlock = Blocks1[Blocks1.Count - 1];
-                Remove(transferredBlock,true);
+                Remove(transferredBlock, true);
                 Mate.Add(0, transferredBlock);
 
                 transferredBlock.OldNode = Node;
@@ -201,8 +201,8 @@ namespace Blocks
             else
             {
                 Block1 transferredBlock = Blocks1[0];
-                Remove(transferredBlock,true);
-                Mate.Add(Mate.Blocks1.Count,transferredBlock);
+                Remove(transferredBlock, true);
+                Mate.Add(Mate.Blocks1.Count, transferredBlock);
 
                 transferredBlock.OldNode = Node;
                 transferredBlock.NewNode = Mate.Node;
@@ -223,6 +223,7 @@ namespace Blocks
                 e.Right.Left = e.Left;
             e.Left = null;
             e.Right = null;
+            e.Father = null;
 
             // If it becomes empty, remove this block2 from its node, and also make sure that the Mate is announced. 
             if (Degree == 0)
@@ -302,7 +303,7 @@ namespace Blocks
                     if (lastNode is Leaf)
                         return true;
 
-                    return lastNode.Group != lastNode.Right.Group || lastNode.Right == null;
+                    return lastNode.Group != lastNode.Right.Group;
                 }
                 catch (Exception)
                 {
@@ -321,7 +322,7 @@ namespace Blocks
                     if (lastNode is Leaf)
                         return true;
 
-                     return lastNode.Group != lastNode.Left.Group || lastNode.Left == null;
+                    return lastNode.Group != lastNode.Left.Group;
                 }
                 catch (Exception)
                 {
@@ -333,8 +334,8 @@ namespace Blocks
         private bool WasFullBeforeInsert()
         {
             return Group.IsSplitGroup ?
-            Helpers.BiP(Node.Level) <= Degree - 1 && Degree - 1 <= Helpers.BiP(Node.Level) + Helpers.RiP(Node.Level - 1) :
-            Helpers.Fi(Node.Level) <= Degree - 1 && Degree - 1 <= Helpers.Fi(Node.Level) + 2 * Helpers.Ri(Node.Level - 1);
+            Helpers.BiP(Node.Level) <= Degree - 1 ://&& Degree - 1 <= Helpers.BiP(Node.Level) + Helpers.RiP(Node.Level - 1) :
+            Helpers.Fi(Node.Level) <= Degree - 1;//&& Degree - 1 <= Helpers.Fi(Node.Level) + 2 * Helpers.Ri(Node.Level - 1);
         }
     }
 }

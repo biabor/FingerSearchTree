@@ -212,6 +212,10 @@ namespace Nodes
                 e.Right.Left = e.Left;
             e.Left = null;
             e.Right = null;
+            e.Node = null;
+
+            if (Blocks2.Count == 0)
+                Father.Remove(this);
 
         }
     }
