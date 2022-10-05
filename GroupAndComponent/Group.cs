@@ -35,7 +35,7 @@ namespace GroupAndComponent
         {
             if (Valid)
             {
-                Group right = Nodes[Nodes.Count - 1].Right.Group;
+                Group right = Nodes[Nodes.Count - 1].Right?.Group;
 
                 if (right == null)
                     return null;
@@ -102,7 +102,7 @@ namespace GroupAndComponent
         {
             if (Valid)
             {
-                Group left = Nodes[0].Left.Group;
+                Group left = Nodes[0].Left?.Group;
 
                 if (left == null)
                     return null;

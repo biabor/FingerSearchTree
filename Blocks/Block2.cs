@@ -98,7 +98,6 @@ namespace Blocks
                         Node.Add(this, Mate);
                     }
                 }
-                _ = Mate.IsFull;
                 TransferToMate();
             }
 
