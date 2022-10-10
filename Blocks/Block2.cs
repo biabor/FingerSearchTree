@@ -225,7 +225,7 @@ namespace Blocks
             e.Father = null;
 
             // If it becomes empty, remove this block2 from its node, and also make sure that the Mate is announced. 
-            if (Degree == 0)
+            if (Blocks1.Count == 0)
             {
                 Node.Remove(this);
                 if (Pending == false && Mate != null)
