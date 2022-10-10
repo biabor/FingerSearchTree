@@ -39,6 +39,52 @@ namespace FingerSearchTree
                 lastLeaf = Tree.Delete(lastLeaf);
         }
 
+        private void RandomTest()
+        {
+            Random rnd = new Random();
+            int value = rnd.Next();
+            while (lastLeaf.FatherNode.FatherNode == null)
+            {
+                lastLeaf = Tree.Search(lastLeaf, value);
+                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
+                {
+                    lastLeaf = Tree.Insert(lastLeaf, value);
+                    elements.Add(value);
+                }
+                value = rnd.Next();
+            }
+            while (lastLeaf.FatherNode.FatherNode.FatherNode == null)
+            {
+                lastLeaf = Tree.Search(lastLeaf, value);
+                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
+                {
+                    lastLeaf = Tree.Insert(lastLeaf, value);
+                    elements.Add(value);
+                }
+                value = rnd.Next();
+            }
+            while (lastLeaf.FatherNode.FatherNode.FatherNode.FatherNode == null)
+            {
+                lastLeaf = Tree.Search(lastLeaf, value);
+                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
+                {
+                    lastLeaf = Tree.Insert(lastLeaf, value);
+                    elements.Add(value);
+                }
+                value = rnd.Next();
+            }
+            while (lastLeaf.FatherNode.FatherNode.FatherNode.FatherNode.FatherNode == null)
+            {
+                lastLeaf = Tree.Search(lastLeaf, value);
+                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
+                {
+                    lastLeaf = Tree.Insert(lastLeaf, value);
+                    elements.Add(value);
+                }
+                value = rnd.Next();
+            }
+        }
+
         private void Test()
         {
             int value = -100000;
@@ -3082,65 +3128,6 @@ namespace FingerSearchTree
             if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
                 lastLeaf = Tree.Insert(lastLeaf, value);
             elements.Add(value);
-        }
-
-        private void RandomTest()
-        {
-            int b = 9;
-
-            Random rnd = new Random();
-            int value = rnd.Next();
-            while (lastLeaf.FatherNode == null)
-            {
-                lastLeaf = Tree.Search(lastLeaf, value);
-                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
-                {
-                    lastLeaf = Tree.Insert(lastLeaf, value);
-                    elements.Add(value);
-                }
-                value = rnd.Next();
-            }
-            while (lastLeaf.FatherNode.FatherNode == null)
-            {
-                lastLeaf = Tree.Search(lastLeaf, value);
-                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
-                {
-                    lastLeaf = Tree.Insert(lastLeaf, value);
-                    elements.Add(value);
-                }
-                value = rnd.Next();
-            }
-            while (lastLeaf.FatherNode.FatherNode.FatherNode == null)
-            {
-                lastLeaf = Tree.Search(lastLeaf, value);
-                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
-                {
-                    lastLeaf = Tree.Insert(lastLeaf, value);
-                    elements.Add(value);
-                }
-                value = rnd.Next();
-            }
-            while (lastLeaf.FatherNode.FatherNode.FatherNode.FatherNode == null)
-            {
-                lastLeaf = Tree.Search(lastLeaf, value);
-                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
-                {
-                    lastLeaf = Tree.Insert(lastLeaf, value);
-                    elements.Add(value);
-                }
-                value = rnd.Next();
-            }
-            while (lastLeaf.FatherNode.FatherNode.FatherNode.FatherNode.FatherNode == null)
-            {
-                lastLeaf = Tree.Search(lastLeaf, value);
-                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
-                {
-                    lastLeaf = Tree.Insert(lastLeaf, value);
-                    elements.Add(value);
-                }
-                value = rnd.Next();
-            }
-            b = 9;
         }
     }
 }

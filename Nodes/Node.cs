@@ -96,54 +96,29 @@ namespace Nodes
             if (FatherNode == null)
                 return true;
 
-            if (Blocks2.Count == 0)
-                return false;
-
-            if (value < Min)
-                return false;
-
-            if (value > Max)
-                return false;
-
-            return true;
+            return Min <= value && value <= Max;
         }
 
         internal Node FindChildContaining(int value)
         {
-            foreach (Block2 block2 in Blocks2)
+            int minpos = 0;
+            int maxpos = Blocks2.Count - 1;
+            int midpos = (maxpos + minpos) / 2;
+            while (Blocks2[midpos].ContainsValue(value) == false && maxpos > minpos)
             {
-                if (block2.Blocks1.Count == 0)
-                    continue;
-
-                Block1 block1Last = block2.Blocks1[block2.Blocks1.Count - 1];
-                if (block1Last.Nodes.Count == 0)
-                    continue;
-
-                Node nodeLast = block1Last.Nodes[block1Last.Nodes.Count - 1];
-                if (nodeLast.Max < value)
-                    continue;
-
-                foreach (Block1 bl1 in block2.Blocks1)
-                {
-                    if (bl1.Nodes.Count == 0)
-                        continue;
-
-                    nodeLast = bl1.Nodes[bl1.Nodes.Count - 1];
-                    if (nodeLast.Max < value)
-                        continue;
-
-                    foreach (Node no in bl1.Nodes)
-                    {
-                        if (no.ContainsValue(value))
-                            return no;
-                        else // Make sure this is correctly followed. --- TODO
-                            if(no.Max > value)
-                                return no.Left;
-                    }
-                }
+                if (Blocks2[midpos].Blocks1[0].Nodes[0].Min > value)
+                    maxpos = midpos - 1;
+                else
+                    minpos = midpos + 1;
+                midpos = (maxpos + minpos) / 2;
             }
 
-            return Blocks2[Blocks2.Count - 1].Blocks1[Blocks2[Blocks2.Count - 1].Blocks1.Count - 1].Nodes[Blocks2[Blocks2.Count - 1].Blocks1[Blocks2[Blocks2.Count - 1].Blocks1.Count - 1].Nodes.Count - 1];
+            if (Blocks2[midpos].ContainsValue(value))
+                return Blocks2[midpos].FindChildContaining(value);
+            else if (Blocks2[midpos].Blocks1[Blocks2[midpos].Blocks1.Count - 1].Nodes[Blocks2[midpos].Blocks1[Blocks2[midpos].Blocks1.Count - 1].Nodes.Count - 1].Max < value)
+                return Blocks2[midpos].Blocks1[Blocks2[midpos].Blocks1.Count - 1].Nodes[Blocks2[midpos].Blocks1[Blocks2[midpos].Blocks1.Count - 1].Nodes.Count - 1];
+            else
+                return Blocks2[midpos].Blocks1[0].Nodes[0].Left;
         }
 
         internal void Add(Block2 left, Block2 middle)

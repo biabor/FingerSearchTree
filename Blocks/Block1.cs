@@ -32,6 +32,33 @@ namespace Blocks
             node.Father = this;
         }
 
+        internal bool ContainsValue(int value)
+        {
+            return Nodes[0].Min <= value && value <= Nodes[Nodes.Count - 1].Max;
+        }
+
+        internal Node FindChildContaining(int value)
+        {
+            int minpos = 0;
+            int maxpos = Nodes.Count - 1;
+            int midpos = (minpos + maxpos) / 2;
+            while (Nodes[midpos].ContainsValue(value) == false && minpos < maxpos)
+            {
+                if (Nodes[midpos].Min > value)
+                    maxpos = midpos - 1;
+                else
+                    minpos = midpos + 1;
+                midpos = (maxpos + minpos) / 2;
+            }
+
+            if (Nodes[midpos].ContainsValue(value))
+                return Nodes[midpos];
+            else if (Nodes[midpos].Max < value)
+                return Nodes[midpos];
+            else
+                return Nodes[midpos].Left;
+        }
+
         internal void Add(Node left, Node middle)
         {
             bool wasFull = IsFull;

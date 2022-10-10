@@ -38,6 +38,33 @@ namespace Blocks
             block1.Father = this;
         }
 
+        internal bool ContainsValue(int value)
+        {
+            return Blocks1[0].Nodes[0].Min <= value && value <= Blocks1[Blocks1.Count - 1].Nodes[Blocks1[Blocks1.Count - 1].Nodes.Count - 1].Max;
+        }
+
+        internal Node FindChildContaining(int value)
+        {
+            int minpos = 0;
+            int maxpos = Blocks1.Count - 1;
+            int midpos = (minpos + maxpos) / 2;
+            while (Blocks1[midpos].ContainsValue(value) == false && minpos < maxpos)
+            {
+                if (Blocks1[midpos].Nodes[0].Min > value)
+                    maxpos = midpos - 1;
+                else
+                    minpos = midpos + 1;
+                midpos = (maxpos + minpos) / 2;
+            }
+
+            if (Blocks1[midpos].ContainsValue(value))
+                return Blocks1[midpos].FindChildContaining(value);
+            else if (Blocks1[midpos].Nodes[Blocks1[midpos].Nodes.Count - 1].Max < value)
+                return Blocks1[midpos].Nodes[Blocks1[midpos].Nodes.Count - 1];
+            else
+                return Blocks1[midpos].Nodes[0].Left;
+        }
+
         internal void Add(Block1 left, Block1 middle)
         {
             bool wasFull = WasFullBeforeInsert();
