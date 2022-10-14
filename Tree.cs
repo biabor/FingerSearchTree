@@ -57,11 +57,14 @@ namespace FingerSearchTree
 
         private static void InsertLeaf(Leaf left, Leaf newLeaf)
         {
-            left.Father.Add(left, newLeaf);
+            AddNode(left, newLeaf);
 
             Node fatherNode = left.FatherNode;
             if (fatherNode.Degree >= Helpers.BiP(fatherNode.Level) && ContainsAtLeastTwoBlock2Pairs(fatherNode))
+            {
+                // Aici e eroarea tot timpul
                 Split(fatherNode);
+            }
             else if (4 * Helpers.Fi(fatherNode.Level) < fatherNode.Degree && fatherNode.Degree < Helpers.BiP(fatherNode.Level) && fatherNode.Blocks2.Count > 1)
             {
                 Block2 firstBlock2 = fatherNode.Blocks2[0];
@@ -71,12 +74,36 @@ namespace FingerSearchTree
                     Block1 toBeMoved = secondBlock2.Blocks1[0];
                     secondBlock2.Remove(toBeMoved, true);
                     firstBlock2.Add(firstBlock2.Blocks1.Count, toBeMoved);
+
+                    if(toBeMoved.Mate != null)
+                    {
+                        if(toBeMoved.Mate == secondBlock2.Blocks1[0])
+                        {
+                            toBeMoved = secondBlock2.Blocks1[0];
+                            secondBlock2.Remove(toBeMoved, true);
+                            firstBlock2.Add(firstBlock2.Blocks1.Count, toBeMoved);
+                        }
+                        else
+                        { }
+                        //Aici e problema
+                    }
                 }
                 else if (secondBlock2.Degree > firstBlock2.Degree)
                 {
                     Block1 toBeMoved = firstBlock2.Blocks1[firstBlock2.Blocks1.Count - 1];
                     firstBlock2.Remove(toBeMoved, true);
                     secondBlock2.Add(0, toBeMoved);
+
+                    if(toBeMoved.Mate != null)
+                    {
+                        if(toBeMoved.Mate == firstBlock2.Blocks1[firstBlock2.Blocks1.Count - 1])
+                        {
+                            toBeMoved = firstBlock2.Blocks1[firstBlock2.Blocks1.Count - 1];
+                            firstBlock2.Remove(toBeMoved, true);
+                            secondBlock2.Add(0, toBeMoved);
+                        }
+                        else { }
+                    }
                 }
             }
         }
@@ -126,7 +153,7 @@ namespace FingerSearchTree
             if (r.FatherNode != null)
             {
                 Block1 qZ = r.Father;
-                Node uP = qZ.Father.Node;
+                Node uP = qZ.NewNode;
                 Group z = uP.Group;
 
                 Block1 qX = uP.Father;
@@ -182,7 +209,7 @@ namespace FingerSearchTree
                     {
                         Split(uP);
                     }
-
+                    qX = uP.Father;
                     if (qX != null && qX.Degree < Helpers.Ai(uP.Level) && qX.Mate == null && (qX.Left != null || qX.Right != null))
                     {
                         if (qX.Left != null && (qX.OldNode == qX.Left.OldNode || qX.NewNode == qX.Left.OldNode))
@@ -238,7 +265,7 @@ namespace FingerSearchTree
                         {
                             int temp = y.Degree;
                             y = GFuse(z, y);
-                            qX.Remove(z.Nodes[0]);
+                            qX.Remove(z.Nodes[0], true);
 
                             if (y.Degree < Helpers.Fi(y.Level) && temp < Helpers.Ai(y.Level))
                             {
@@ -247,7 +274,7 @@ namespace FingerSearchTree
                                 {
                                     temp = w.Degree;
                                     w = GFuse(y, w);
-                                    qX.Remove(y.Nodes[0]); // Sau up.right? TODO 
+                                    qX.Remove(y.Nodes[0], true); // Sau up.right? TODO 
 
                                     if (w.Degree < Helpers.Fi(w.Level) && temp < Helpers.Ai(w.Level))
                                     {
@@ -256,7 +283,7 @@ namespace FingerSearchTree
                                         {
                                             temp = t.Degree;
                                             t = GFuse(w, t);
-                                            qX.Remove(w.Nodes[0]); // Sau up.right? TODO 
+                                            qX.Remove(w.Nodes[0], true); // Sau up.right? TODO 
 
                                             if (t.Degree < Helpers.Fi(t.Level) && temp < Helpers.Ai(t.Level))
                                             {
@@ -264,7 +291,7 @@ namespace FingerSearchTree
                                                 if (tP != null && tP.Block2 == qX.Father && t.Degree + tP.Degree < 4 * Helpers.Fi(t.Level) && tP.Mate == null)
                                                 {
                                                     GFuse(t, tP);
-                                                    qX.Remove(t.Nodes[0]);
+                                                    qX.Remove(t.Nodes[0], true);
                                                 }
                                             }
                                         }
@@ -272,7 +299,7 @@ namespace FingerSearchTree
                                         {
                                             Group tP = w.Left(uP);
                                             GFuse(w, tP);
-                                            qX.Remove(w.Nodes[0]);
+                                            qX.Remove(w.Nodes[0], true);
                                         }
                                     }
                                 }
@@ -280,7 +307,7 @@ namespace FingerSearchTree
                                 {
                                     Group t = y.Right(uP);
                                     GFuse(y, t);
-                                    qX.Remove(y.Nodes[0]);
+                                    qX.Remove(y.Nodes[0], true);
                                 }
                             }
                         }
@@ -289,7 +316,7 @@ namespace FingerSearchTree
                             Group w = z.Left(uP);
                             int temp = w.Degree;
                             w = GFuse(z, w);
-                            qX.Remove(z.Nodes[0]);
+                            qX.Remove(z.Nodes[0], true);
 
                             if (w.Degree < Helpers.Fi(w.Level) && temp < Helpers.Ai(w.Level))
                             {
@@ -297,7 +324,7 @@ namespace FingerSearchTree
                                 if (tP != null && tP.Block2 == qX.Father && w.Degree + tP.Degree < 4 * Helpers.Fi(w.Level) && tP.Mate == null)
                                 {
                                     GFuse(w, tP);
-                                    qX.Remove(w.Nodes[0]);
+                                    qX.Remove(w.Nodes[0], true);
                                 }
                             }
                         }
@@ -532,7 +559,7 @@ namespace FingerSearchTree
             }
             else
             {
-                f = father.OldNode.Group.Valid ? father.OldNode : father.NewNode ?? father.Father.Node;
+                f = father.OldNode != null && father.OldNode.Group.Valid ? father.OldNode : father.NewNode ?? father.Father.Node;
 
                 if (f.Group.Valid == false)
                 {
@@ -600,8 +627,8 @@ namespace FingerSearchTree
                     toBeMovedFrom.Remove(toBeMoved);
                     toBeMovedIn.Add(0, toBeMoved);
 
-                    toBeMoved.OldNode = toBeMovedFrom.Node;
-                    toBeMoved.NewNode = toBeMovedIn.Node;
+                    toBeMoved.NewNode = toBeMovedFrom.Node;
+                    toBeMoved.OldNode = toBeMovedIn.Node;
                 }
                 else
                 {
@@ -612,8 +639,8 @@ namespace FingerSearchTree
                     toBeMovedFrom.Remove(toBeMoved);
                     toBeMovedIn.Add(toBeMovedIn.Blocks1.Count, toBeMoved);
 
-                    toBeMoved.OldNode = toBeMovedFrom.Node;
-                    toBeMoved.NewNode = toBeMovedIn.Node;
+                    toBeMoved.NewNode = toBeMovedFrom.Node;
+                    toBeMoved.OldNode = toBeMovedIn.Node;
                 }
                 return g;
             }
@@ -629,8 +656,8 @@ namespace FingerSearchTree
                     toBeMovedFrom.Remove(toBeMoved);
                     toBeMovedIn.Add(0, toBeMoved);
 
-                    toBeMoved.OldNode = toBeMovedFrom.Node;
-                    toBeMoved.NewNode = toBeMovedIn.Node;
+                    toBeMoved.NewNode = toBeMovedFrom.Node;
+                    toBeMoved.OldNode = toBeMovedIn.Node;
                 }
                 else
                 {
@@ -641,8 +668,8 @@ namespace FingerSearchTree
                     toBeMovedFrom.Remove(toBeMoved);
                     toBeMovedIn.Add(toBeMovedIn.Blocks1.Count, toBeMoved);
 
-                    toBeMoved.OldNode = toBeMovedFrom.Node;
-                    toBeMoved.NewNode = toBeMovedIn.Node;
+                    toBeMoved.NewNode = toBeMovedFrom.Node;
+                    toBeMoved.OldNode = toBeMovedIn.Node;
                 }
                 return gP;
             }
@@ -853,13 +880,140 @@ namespace FingerSearchTree
             if (node.FatherNode == null)
             {
                 new Node(new Block2(new Block1(node)));
-                node.Father.OldNode = node.FatherNode;
+                node.Father.NewNode = node.FatherNode;
                 node.Father.Father.Group = node.FatherNode.Group;
             }
 
-            node.Father.Add(node, newNode);
+            AddNode(node, newNode);
 
             GAdd(newNode, node.Group);
+        }
+
+        private static void AddNode(Node left, Node newNode)
+        {
+            bool wasFullBlock1 = left.Father.IsFull;
+            bool wasFullBlock2 = left.Father.Father.IsFull;
+
+            Block1 father = left.Father;
+            Block2 grandfather = left.Father.Father;
+
+            father.Add(left, newNode);
+
+            // If this block1 was already full before the insert, then transfer to one node to the mate.
+            if (wasFullBlock1)
+            {
+                if (father.Mate == null)
+                {
+                    father.Mate = new Block1()
+                    {
+                        Mate = father
+                    };
+                    grandfather.Add(father, father.Mate);
+                }
+                father.TransferToMate();
+            }
+
+            // if both become full, break the pair.
+            if (father.IsFull && father.Mate != null && father.Mate.IsFull)
+            {
+                father.Mate.Mate = null;
+                father.Mate = null;
+            }
+
+
+
+            // if it is a pending object there is no transfer needed. But if it became full then break it from the pair.
+            if (grandfather.Pending && grandfather.IsFull)
+            {
+                grandfather.Pending = false;
+                grandfather.Mate = null;
+            }
+
+
+
+            // if the block2 was already full before the insert, the treansfer one block1 to the mate. 
+            if (wasFullBlock2)
+            {
+                // if there is no mate, then find one. 
+                if (grandfather.Mate == null)
+                {
+                    // if we can pair it with a pending block, we make the pair.
+                    if (grandfather.Right != null && grandfather.Right.Pending && grandfather.Right.Mate == grandfather)
+                    {
+                        grandfather.Right.Pending = false;
+                        grandfather.Mate = grandfather.Right;
+                    }
+                    else if (grandfather.Left != null && grandfather.Left.Pending && grandfather.Left.Mate == grandfather)
+                    {
+                        grandfather.Left.Pending = false;
+                        grandfather.Mate = grandfather.Left;
+                    }
+                    else
+                    {
+                        grandfather.Mate = new Block2()
+                        {
+                            Mate = grandfather
+                        };
+
+                        grandfather.Node.Add(grandfather, grandfather.Mate);
+                    }
+                }
+                grandfather.TransferToMate();
+            }
+
+
+
+
+            // if both blocks2 of them are full, and the break would not spoil invariant 5, then break the pair;
+            if (grandfather.IsFull && grandfather.Mate != null && grandfather.Mate.IsFull && grandfather.IsBreakPossible())
+            {
+                Block2 oldMate = grandfather.Mate;
+                if (grandfather.Mate == grandfather.Right)
+                {
+                    if (grandfather.Left != null && grandfather.Left.Pending && grandfather.Left.Mate == grandfather)
+                    {
+                        grandfather.Mate = grandfather.Left;
+                        grandfather.Pending = false;
+                    }
+                    else
+                    {
+                        grandfather.Mate = null;
+                    }
+
+                    if (oldMate.Right != null && oldMate.Right.Pending && oldMate.Right.Mate == oldMate)
+                    {
+                        oldMate.Mate = oldMate.Right;
+                        oldMate.Mate.Pending = false;
+                    }
+                    else
+                    {
+                        oldMate.Mate = null;
+                    }
+                }
+                else
+                {
+                    if (grandfather.Right != null && grandfather.Right.Pending && grandfather.Right.Mate == grandfather)
+                    {
+                        grandfather.Mate = grandfather.Right;
+                        grandfather.Mate.Pending = false;
+                    }
+                    else
+                    {
+                        grandfather.Mate = null;
+                    }
+
+                    if (oldMate.Left != null && oldMate.Left.Pending && oldMate.Left.Mate == oldMate)
+                    {
+                        oldMate.Mate = oldMate.Left;
+                        oldMate.Mate.Pending = false;
+                    }
+                    else
+                    {
+                        oldMate.Mate = null;
+                    }
+                }
+            }
+
         }
 
         private static void GAdd(Node v, Group g)
@@ -872,23 +1026,39 @@ namespace FingerSearchTree
 
         private static void Transfer(Block2 from, Block2 to)
         {
-            if (from.Blocks1.Count == 0)
-            {
-                from.Node.Remove(from);
-                return;
-            }
-
             if (from.Right == to)
             {
                 Block1 what = from.Blocks1[from.Blocks1.Count - 1];
                 from.Remove(what, true);
                 to.Add(0, what);
+
+                if(what.Mate != null)
+                {
+                    if(what.Mate == from.Blocks1[from.Blocks1.Count - 1])
+                    {
+                        what = from.Blocks1[from.Blocks1.Count - 1];
+                        from.Remove(what, true);
+                        to.Add(0, what);
+                    }
+                    else { }
+                }
             }
             else
             {
                 Block1 what = from.Blocks1[0];
                 from.Remove(what, true);
                 to.Add(to.Blocks1.Count, what);
+
+                if(what.Mate != null)
+                {
+                    if(what.Mate == from.Blocks1[0])
+                    {
+                        what = from.Blocks1[0];
+                        from.Remove(what, true);
+                        to.Add(to.Blocks1.Count, what);
+                    }
+                    else { }
+                }
             }
         }
 

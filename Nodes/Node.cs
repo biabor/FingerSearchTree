@@ -72,7 +72,7 @@ namespace Nodes
                 if (Group.IsSplitGroup) return Group.Component;
                 else return component_;
             }
-            set 
+            set
             {
                 component_ = value;
                 Group.Component = value;
@@ -124,20 +124,25 @@ namespace Nodes
         internal void Add(Block2 left, Block2 middle)
         {
             // find position to insert.
-            int position = Blocks2.FindIndex(x => x == left);
-            position++;
+            int position = Blocks2.FindIndex(x => x == left) + 1;
 
             // actually insert in the list.
             Blocks2.Insert(position, middle);
             middle.Node = this;
 
+            Block2 rightTest = left.Right;
+
             // Make sure the left/right pointers are set correctly.
-            Block2 right = left.Right;
             left.Right = middle;
             middle.Left = left;
 
-            if (right != null)
+            if (position < Blocks2.Count - 1)
             {
+                Block2 right = Blocks2[position + 1];
+                if(right != rightTest) 
+                { int ok; }
+                if(right.Left != left)
+                { int ok; }
                 middle.Right = right;
                 right.Left = middle;
             }
@@ -151,47 +156,58 @@ namespace Nodes
             Blocks2.Insert(position, middle);
             middle.Node = this;
 
-            if (position == 0)
-            {
-                if (Blocks2.Count > 1)
-                {
-                    Block2 right = Blocks2[position + 1];
-                    middle.Right = right;
-                    right.Left = middle;
-                }
-            }
-            else if (position == Blocks2.Count)
+            Block2 rightTest = null;
+            Block2 leftTest = null;
+
+            // Make sure the left/right pointers are set correctly.
+            if (position != 0)
             {
                 Block2 left = Blocks2[position - 1];
-                left.Right = middle;
+                rightTest = left.Right;
                 middle.Left = left;
-            }
-            else
-            {
-                Block2 left = Blocks2[position - 1];
-                Block2 right = Blocks2[position + 1];
                 left.Right = middle;
+            }
+
+            if (position < Blocks2.Count - 1)
+            {
+                Block2 right = Blocks2[position + 1];
+                leftTest = right.Left;
+                if(right != rightTest)
+                { int ok; }
+                if(position != 0 && Blocks2[position - 1] != leftTest)
+                { int ok; }
                 middle.Right = right;
                 right.Left = middle;
-                middle.Left = left;
             }
         }
 
         internal void Remove(Block2 e)
         {
+            int position = Blocks2.FindIndex(x => x == e);
+
             Blocks2.Remove(e);
 
-            if (e.Left != null)
-                e.Left.Right = e.Right;
-            if (e.Right != null)
-                e.Right.Left = e.Left;
-            e.Left = null;
-            e.Right = null;
-            e.Node = null;
+            Block2 right = null;
+            Block2 left = null;
+
+            // Sort the left right pointers.
+            if (position != 0)
+                left = Blocks2[position - 1];
+            if (position <= Blocks2.Count - 1)
+                right = Blocks2[position];
+
+            if (left != null)
+                left.Right = right;
+            if (right != null)
+                right.Left = left;
+
+            if(left != e.Left)
+            { int ok; }
+            if(right != e.Right)
+            { int ok; }
 
             if (Blocks2.Count == 0)
                 Father.Remove(this);
-
         }
     }
 }

@@ -6,22 +6,22 @@ namespace FingerSearchTree
     {
         public static long Bi(int level)
         {
-            return 128 * (long)Math.Pow(4,level); 
+            return 256 * (long)Math.Pow(4,level); 
         }
 
         public static long BiP(int level) 
         {
-            return 32 * (long)Math.Pow(4, level);
-        }
-
-        public static long Ai(int level) 
-        {
-            return (long)Math.Pow(2, level);
+            return 128 * (long)Math.Pow(4, level);
         }
 
         public static long Fi(int level) 
         {
-            return 4 * (long)Math.Pow(2, level); 
+            return 4 * (long)Math.Pow(2, level);
+        }
+
+        public static long Ai(int level)
+        {
+            return (long)Math.Pow(2, level);
         }
 
         internal static long Ri(int level)
@@ -31,7 +31,7 @@ namespace FingerSearchTree
 
         public static long RiP (int level)
         {
-            return 128 / 32;//Bi(level) / BiP(level); 
+            return Bi(level) / BiP(level); 
         }
     }
 }
