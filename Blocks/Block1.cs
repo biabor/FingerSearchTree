@@ -69,7 +69,6 @@ namespace Blocks
             middle.Father = this;
 
             // Make sure the left/right pointers are set correctly.
-            Node rightTest = left.Right;
             left.Right = middle;
             middle.Left = left;
 
@@ -120,9 +119,6 @@ namespace Blocks
             middle.Father = this;
 
             // Make sure the left/right pointers are set correctly.
-            Node rightTest = null;
-            Node leftTest = null;
-
             Node left = null;
             if (position != 0)
             {
@@ -154,7 +150,6 @@ namespace Blocks
                 }
             }
 
-            rightTest = left.Right;
             left.Right = middle;
             middle.Left = left;
 
@@ -191,12 +186,6 @@ namespace Blocks
                 }
             }
             if (right != null)
-            { leftTest = right.Left; }
-            if (right != rightTest)
-            { int ok; }
-            if (right != null && left != leftTest)
-            { int ok; }
-            if (right != null)
             {
                 right.Left = middle;
                 middle.Right = right;
@@ -218,14 +207,6 @@ namespace Blocks
                 Node transferredNode = Nodes[0]; //if the mate is on the left, then we transfer the first node to its mate, so that we can keep the order of the nodes unchanged.
                 Remove(transferredNode,true);
                 Mate.Add(Mate.Nodes.Count, transferredNode);
-            }
-            else
-            {
-                int eu = Father.Blocks1.FindIndex(x => x == this);
-                int el = Father.Blocks1.FindIndex(x => x == Mate);
-                int ou = Father.Blocks1.FindIndex(x => x == Right);
-                int ol = Father.Blocks1.FindIndex(x => x == Mate.Left);
-                bool ok = Father.Blocks1[eu].Right == Father.Blocks1[el];
             }
         }
 

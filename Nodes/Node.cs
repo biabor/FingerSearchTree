@@ -130,8 +130,6 @@ namespace Nodes
             Blocks2.Insert(position, middle);
             middle.Node = this;
 
-            Block2 rightTest = left.Right;
-
             // Make sure the left/right pointers are set correctly.
             left.Right = middle;
             middle.Left = left;
@@ -139,10 +137,6 @@ namespace Nodes
             if (position < Blocks2.Count - 1)
             {
                 Block2 right = Blocks2[position + 1];
-                if(right != rightTest) 
-                { int ok; }
-                if(right.Left != left)
-                { int ok; }
                 middle.Right = right;
                 right.Left = middle;
             }
@@ -156,14 +150,10 @@ namespace Nodes
             Blocks2.Insert(position, middle);
             middle.Node = this;
 
-            Block2 rightTest = null;
-            Block2 leftTest = null;
-
             // Make sure the left/right pointers are set correctly.
             if (position != 0)
             {
                 Block2 left = Blocks2[position - 1];
-                rightTest = left.Right;
                 middle.Left = left;
                 left.Right = middle;
             }
@@ -171,11 +161,6 @@ namespace Nodes
             if (position < Blocks2.Count - 1)
             {
                 Block2 right = Blocks2[position + 1];
-                leftTest = right.Left;
-                if(right != rightTest)
-                { int ok; }
-                if(position != 0 && Blocks2[position - 1] != leftTest)
-                { int ok; }
                 middle.Right = right;
                 right.Left = middle;
             }
@@ -200,11 +185,6 @@ namespace Nodes
                 left.Right = right;
             if (right != null)
                 right.Left = left;
-
-            if(left != e.Left)
-            { int ok; }
-            if(right != e.Right)
-            { int ok; }
 
             if (Blocks2.Count == 0)
                 Father.Remove(this);

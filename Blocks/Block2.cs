@@ -73,18 +73,12 @@ namespace Blocks
             middle.Father = this;
 
             // Make sure the left/right pointers are set correctly.
-            Block1 rightTest = left.Right;
-
             left.Right = middle;
             middle.Left = left;
 
             if (pos < Blocks1.Count - 1)
             {
                 Block1 right = Blocks1[pos + 1];
-                if(right != rightTest)
-                { int ok; }
-                if(right.Left != left)
-                { int ok; }
                 middle.Right = right;
                 right.Left = middle;
             }
@@ -99,12 +93,9 @@ namespace Blocks
             middle.Father = this;
 
             // Make sure the left/right pointers are set correctly.
-            Block1 rightTest = null;
-            Block1 leftTest = null;
             if (position != 0)
             {
                 Block1 left = Blocks1[position - 1];
-                rightTest = left.Right;
                 middle.Left = left;
                 left.Right = middle;
                 middle.NewNode = left.NewNode;
@@ -113,11 +104,6 @@ namespace Blocks
             if (position != Blocks1.Count - 1)
             {
                 Block1 right = Blocks1[position + 1];
-                leftTest = right.Left;
-                if(rightTest != null && right != rightTest)
-                { int ok; }
-                if(position != 0 && Blocks1[position -1 ] != leftTest)
-                { int ok; }
                 middle.Right = right;
                 right.Left = middle;
                 middle.NewNode = right.NewNode;
@@ -137,25 +123,15 @@ namespace Blocks
 
                 if (transferredBlock.Mate != null)
                 {
-                    if (transferredBlock.Mate == Blocks1[Blocks1.Count - 1])
-                    {
-                        Block1 transferredBlockMate = Blocks1[Blocks1.Count - 1];
-                        Remove(transferredBlockMate, true);
-                        Mate.Add(0, transferredBlockMate);
+                    Block1 transferredBlockMate = Blocks1[Blocks1.Count - 1];
+                    Remove(transferredBlockMate, true);
+                    Mate.Add(0, transferredBlockMate);
 
-                        transferredBlockMate.NewNode = Node;
-                        transferredBlockMate.OldNode = Mate.Node;
-
-                        if (transferredBlock.Mate != transferredBlockMate || transferredBlockMate.Mate != transferredBlock || transferredBlock.Mate != transferredBlock.Left || transferredBlockMate.Mate != transferredBlockMate.Right)
-                        { int ok; }
-                    }
-                    else
-                    {
-                        int ok;
-                    }
+                    transferredBlockMate.NewNode = Node;
+                    transferredBlockMate.OldNode = Mate.Node;
                 }
             }
-            else if(Mate == Left)
+            else if (Mate == Left)
             {
                 Block1 transferredBlock = Blocks1[0];
                 Remove(transferredBlock, true);
@@ -166,32 +142,20 @@ namespace Blocks
 
                 if (transferredBlock.Mate != null)
                 {
-                    if (transferredBlock.Mate == Blocks1[0])
-                    {
-                        Block1 transferredBlockMate = Blocks1[0];
-                        Remove(transferredBlockMate, true);
-                        Mate.Add(Mate.Blocks1.Count, transferredBlockMate);
+                    Block1 transferredBlockMate = Blocks1[0];
+                    Remove(transferredBlockMate, true);
+                    Mate.Add(Mate.Blocks1.Count, transferredBlockMate);
 
-                        transferredBlockMate.NewNode = Node;
-                        transferredBlockMate.OldNode = Mate.Node;
-
-                        if (transferredBlock.Mate != transferredBlockMate || transferredBlockMate.Mate != transferredBlock || transferredBlock.Mate != transferredBlock.Right || transferredBlockMate.Mate != transferredBlockMate.Left)
-                        { int ok; }
-                    }
-                    else
-                    {
-                        int ok;
-                    }
+                    transferredBlockMate.NewNode = Node;
+                    transferredBlockMate.OldNode = Mate.Node;
                 }
             }
-            else
-            { int ok;  }
         }
 
         internal void Remove(Block1 e, bool justForTransfer = false)
         {
             bool wasFull = IsFull;
-            
+
             int position = Blocks1.FindIndex(x => x == e);
 
             // Remove it from the list of nodes.
@@ -205,11 +169,6 @@ namespace Blocks
                 left = Blocks1[position - 1];
             if (position <= Blocks1.Count - 1)
                 right = Blocks1[position];
-
-            if (left != e.Left)
-            { int ok; }
-            if (right != e.Right)
-            { int ok; }
 
             if (left != null)
                 left.Right = right;
@@ -283,43 +242,30 @@ namespace Blocks
         {
             if (Mate == Right)
             {
-                try
-                {
-                    Block1 lastBlock1 = Blocks1[Blocks1.Count - 1];
-                    if (lastBlock1.Nodes.Count == 0)
-                        lastBlock1 = lastBlock1.Left;
-                    Node lastNode = lastBlock1.Nodes[lastBlock1.Nodes.Count - 1];
+                Block1 lastBlock1 = Blocks1[Blocks1.Count - 1];
+                if (lastBlock1.Nodes.Count == 0)
+                    lastBlock1 = lastBlock1.Left;
+                Node lastNode = lastBlock1.Nodes[lastBlock1.Nodes.Count - 1];
 
-                    if (lastNode is Leaf)
-                        return true;
+                if (lastNode is Leaf)
+                    return true;
 
-                    return lastNode.Group != lastNode.Right.Group;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
+                return lastNode.Group != lastNode.Right.Group;
             }
-            else if(Mate == Left)
+            else if (Mate == Left)
             {
-                try
-                {
-                    Block1 lastBlock1 = Mate.Blocks1[Mate.Blocks1.Count - 1];
-                    if (lastBlock1.Nodes.Count == 0)
-                        lastBlock1 = lastBlock1.Left;
-                    Node lastNode = lastBlock1.Nodes[lastBlock1.Nodes.Count - 1];
+                Block1 lastBlock1 = Mate.Blocks1[Mate.Blocks1.Count - 1];
+                if (lastBlock1.Nodes.Count == 0)
+                    lastBlock1 = lastBlock1.Left;
+                Node lastNode = lastBlock1.Nodes[lastBlock1.Nodes.Count - 1];
 
-                    if (lastNode is Leaf)
-                        return true;
+                if (lastNode is Leaf)
+                    return true;
 
-                    return lastNode.Group != lastNode.Left.Group;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
+                return lastNode.Group != lastNode.Left.Group;
             }
-            else { return false; }
+            else
+                return false;
         }
     }
 }

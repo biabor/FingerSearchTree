@@ -62,7 +62,6 @@ namespace FingerSearchTree
             Node fatherNode = left.FatherNode;
             if (fatherNode.Degree >= Helpers.BiP(fatherNode.Level) && ContainsAtLeastTwoBlock2Pairs(fatherNode))
             {
-                // Aici e eroarea tot timpul
                 Split(fatherNode);
             }
             else if (4 * Helpers.Fi(fatherNode.Level) < fatherNode.Degree && fatherNode.Degree < Helpers.BiP(fatherNode.Level) && fatherNode.Blocks2.Count > 1)
@@ -77,15 +76,9 @@ namespace FingerSearchTree
 
                     if(toBeMoved.Mate != null)
                     {
-                        if(toBeMoved.Mate == secondBlock2.Blocks1[0])
-                        {
                             toBeMoved = secondBlock2.Blocks1[0];
                             secondBlock2.Remove(toBeMoved, true);
                             firstBlock2.Add(firstBlock2.Blocks1.Count, toBeMoved);
-                        }
-                        else
-                        { }
-                        //Aici e problema
                     }
                 }
                 else if (secondBlock2.Degree > firstBlock2.Degree)
@@ -96,13 +89,9 @@ namespace FingerSearchTree
 
                     if(toBeMoved.Mate != null)
                     {
-                        if(toBeMoved.Mate == firstBlock2.Blocks1[firstBlock2.Blocks1.Count - 1])
-                        {
                             toBeMoved = firstBlock2.Blocks1[firstBlock2.Blocks1.Count - 1];
                             firstBlock2.Remove(toBeMoved, true);
                             secondBlock2.Add(0, toBeMoved);
-                        }
-                        else { }
                     }
                 }
             }
