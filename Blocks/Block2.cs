@@ -114,40 +114,70 @@ namespace Blocks
         {
             if (Mate == Right)
             {
-                Block1 transferredBlock = Blocks1[Blocks1.Count - 1];
-                Remove(transferredBlock, true);
-                Mate.Add(0, transferredBlock);
-
-                transferredBlock.NewNode = Node;
-                transferredBlock.OldNode = Mate.Node;
-
-                if (transferredBlock.Mate != null)
+                Block1 transferredBlockFrom = Blocks1[Blocks1.Count - 1];
+                if (Mate.Blocks1.Count == 0)
                 {
-                    Block1 transferredBlockMate = Blocks1[Blocks1.Count - 1];
-                    Remove(transferredBlockMate, true);
-                    Mate.Add(0, transferredBlockMate);
+                    Mate.Blocks1.Add(new Block1() { NewNode = Mate.Node, Father = Mate });
+                }
+                Block1 transferredBlockTo = Mate.Blocks1[0];
+                Node transferredNode = transferredBlockFrom.Nodes[transferredBlockFrom.Nodes.Count - 1];
 
-                    transferredBlockMate.NewNode = Node;
-                    transferredBlockMate.OldNode = Mate.Node;
+                bool wasFull = transferredBlockTo.IsFull;
+
+                transferredBlockFrom.Remove(transferredNode);
+                transferredBlockTo.Add(0, transferredNode);
+
+                if (wasFull)
+                {
+                    if (transferredBlockTo.Mate == null)
+                    {
+                        transferredBlockTo.Mate = new Block1()
+                        {
+                            Mate = transferredBlockTo
+                        };
+                        transferredBlockTo.Father.Add(transferredBlockTo, transferredBlockTo.Mate);
+                    }
+                    transferredBlockTo.TransferToMate();
+                }
+
+                if(transferredBlockTo.IsFull && transferredBlockTo.Mate != null && transferredBlockTo.Mate.IsFull)
+                {
+                    transferredBlockTo.Mate.Mate = null;
+                    transferredBlockTo.Mate = null;
                 }
             }
             else if (Mate == Left)
             {
-                Block1 transferredBlock = Blocks1[0];
-                Remove(transferredBlock, true);
-                Mate.Add(Mate.Blocks1.Count, transferredBlock);
-
-                transferredBlock.NewNode = Node;
-                transferredBlock.OldNode = Mate.Node;
-
-                if (transferredBlock.Mate != null)
+                Block1 transferredBlockFrom = Blocks1[0];
+                if (Mate.Blocks1.Count == 0)
                 {
-                    Block1 transferredBlockMate = Blocks1[0];
-                    Remove(transferredBlockMate, true);
-                    Mate.Add(Mate.Blocks1.Count, transferredBlockMate);
+                    Mate.Blocks1.Add(new Block1() { NewNode = Mate.Node, Father = Mate });
+                }
+                Block1 transferredBlockTo = Mate.Blocks1[Mate.Blocks1.Count - 1];
+                Node transferredNode = transferredBlockFrom.Nodes[0];
 
-                    transferredBlockMate.NewNode = Node;
-                    transferredBlockMate.OldNode = Mate.Node;
+                bool wasFull = transferredBlockTo.IsFull;
+
+                transferredBlockFrom.Remove(transferredNode);
+                transferredBlockTo.Add(transferredBlockTo.Nodes.Count, transferredNode);
+
+                if (wasFull)
+                {
+                    if (transferredBlockTo.Mate == null)
+                    {
+                        transferredBlockTo.Mate = new Block1()
+                        {
+                            Mate = transferredBlockTo
+                        };
+                        transferredBlockTo.Father.Add(transferredBlockTo, transferredBlockTo.Mate);
+                    }
+                    transferredBlockTo.TransferToMate();
+                }
+
+                if (transferredBlockTo.IsFull && transferredBlockTo.Mate != null && transferredBlockTo.Mate.IsFull)
+                {
+                    transferredBlockTo.Mate.Mate = null;
+                    transferredBlockTo.Mate = null;
                 }
             }
         }
@@ -189,8 +219,10 @@ namespace Blocks
                 return;
 
             // If it is not the full mate in the pair of blocks2, then there is no need to perform the transfers.
-            if (wasFull == false)
+            if (wasFull == false || IsFull)
+            {
                 return;
+            }
 
             if (justForTransfer)
                 return;

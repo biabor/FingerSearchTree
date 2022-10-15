@@ -42,7 +42,7 @@ namespace FingerSearchTree
         private void RandomTest()
         {
             Random rnd = new Random();
-            int value = rnd.Next();
+            int value = int.MaxValue;
             
             while (lastLeaf.FatherNode.FatherNode == null)
             {
@@ -52,6 +52,7 @@ namespace FingerSearchTree
                     lastLeaf = Tree.Insert(lastLeaf, value);
                     elements.Add(value);
                 }
+
                 value = rnd.Next();
             }
             
@@ -63,8 +64,34 @@ namespace FingerSearchTree
                     lastLeaf = Tree.Insert(lastLeaf, value);
                     elements.Add(value);
                 }
+
                 value = rnd.Next();
             }
+
+
+            int count = 0;
+            bool ok = true;
+            while (lastLeaf.Left != null)
+                lastLeaf = lastLeaf.Left as Leaf;
+            while (lastLeaf.Right != null)
+            {
+                if (lastLeaf.Min > lastLeaf.Right.Min)
+                    ok = false;
+                lastLeaf = lastLeaf.Right as Leaf;
+                count++;
+            }
+            if (count != elements.Count)
+                ok = false;
+            count = 0;
+            while (lastLeaf.Left != null)
+            {
+                if (lastLeaf.Min < lastLeaf.Min)
+                    ok = false;
+                lastLeaf = lastLeaf.Left as Leaf;
+                count++;
+            }
+            if (count != elements.Count)
+                ok = false;
 
             while (lastLeaf.FatherNode.FatherNode.FatherNode.FatherNode == null)
             {
@@ -76,6 +103,31 @@ namespace FingerSearchTree
                 }
                 value = rnd.Next();
             }
+
+
+            count = 0;
+            ok = true;
+            while (lastLeaf.Left != null)
+                lastLeaf = lastLeaf.Left as Leaf;
+            while (lastLeaf.Right != null)
+            {
+                if (lastLeaf.Min > lastLeaf.Right.Min)
+                    ok = false;
+                lastLeaf = lastLeaf.Right as Leaf;
+                count++;
+            }
+            if (count != elements.Count)
+                ok = false;
+            count = 0;
+            while (lastLeaf.Left != null)
+            {
+                if (lastLeaf.Min < lastLeaf.Min)
+                    ok = false;
+                lastLeaf = lastLeaf.Left as Leaf;
+                count++;
+            }
+            if (count != elements.Count)
+                ok = false;
 
             while (lastLeaf.FatherNode.FatherNode.FatherNode.FatherNode.FatherNode == null)
             {
