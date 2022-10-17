@@ -33,17 +33,102 @@ namespace FingerSearchTree
 
         private void deleteBtn__Click(object sender, EventArgs e)
         {
-            int value = int.Parse(textBox1.Text);
-            lastLeaf = Tree.Search(lastLeaf, value);
-            if (lastLeaf.Value == value)
-                lastLeaf = Tree.Delete(lastLeaf);
+            RandomInsert(1200);
+            RandomDelete();
+            //int value = int.Parse(textBox1.Text);
+            //lastLeaf = Tree.Search(lastLeaf, value);
+            //if (lastLeaf.Value == value)
+            //    lastLeaf = Tree.Delete(lastLeaf);
+        }
+
+        private void RandomInsert(int howMany)
+        {
+            Random rnd = new Random();
+            int value = int.MaxValue;
+
+            while (elements.Count < howMany)
+            {
+                lastLeaf = Tree.Search(lastLeaf, value);
+                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
+                {
+                    lastLeaf = Tree.Insert(lastLeaf, value);
+                    elements.Add(value);
+                }
+
+                value = rnd.Next();
+            }
+        }
+
+        private void RandomDelete()
+        {
+            Random rnd = new Random();
+            while (elements.Count != 0)
+            {
+                int index = rnd.Next(elements.Count);
+                int value = elements[index];
+                lastLeaf = Tree.Search(lastLeaf, value);
+                if (lastLeaf.Value == value)
+                {
+                    lastLeaf = Tree.Delete(lastLeaf);
+                    elements.Remove(value);
+                }
+
+                int count = 0;
+                bool ok = true;
+                while (lastLeaf.Left != null)
+                    lastLeaf = lastLeaf.Left as Leaf;
+                while (lastLeaf.Right != null)
+                {
+                    if (lastLeaf.Min > lastLeaf.Right.Min)
+                        ok = false;
+                    lastLeaf = lastLeaf.Right as Leaf;
+                    count++;
+                }
+                if (count != elements.Count)
+                    ok = false;
+                count = 0;
+                while (lastLeaf.Left != null)
+                {
+                    if (lastLeaf.Min < lastLeaf.Min)
+                        ok = false;
+                    lastLeaf = lastLeaf.Left as Leaf;
+                    count++;
+                }
+                if (count != elements.Count)
+                    ok = false;
+
+            }
         }
 
         private void RandomTest()
         {
             Random rnd = new Random();
             int value = int.MaxValue;
-            
+
+            int count = 0;
+            bool ok = true;
+            while (lastLeaf.Left != null)
+                lastLeaf = lastLeaf.Left as Leaf;
+            while (lastLeaf.Right != null)
+            {
+                if (lastLeaf.Min > lastLeaf.Right.Min)
+                    ok = false;
+                lastLeaf = lastLeaf.Right as Leaf;
+                count++;
+            }
+            if (count != elements.Count)
+                ok = false;
+            count = 0;
+            while (lastLeaf.Left != null)
+            {
+                if (lastLeaf.Min < lastLeaf.Min)
+                    ok = false;
+                lastLeaf = lastLeaf.Left as Leaf;
+                count++;
+            }
+            if (count != elements.Count)
+                ok = false;
+
             while (lastLeaf.FatherNode.FatherNode == null)
             {
                 lastLeaf = Tree.Search(lastLeaf, value);
@@ -55,7 +140,31 @@ namespace FingerSearchTree
 
                 value = rnd.Next();
             }
-            
+
+            count = 0;
+            ok = true;
+            while (lastLeaf.Left != null)
+                lastLeaf = lastLeaf.Left as Leaf;
+            while (lastLeaf.Right != null)
+            {
+                if (lastLeaf.Min > lastLeaf.Right.Min)
+                    ok = false;
+                lastLeaf = lastLeaf.Right as Leaf;
+                count++;
+            }
+            if (count != elements.Count)
+                ok = false;
+            count = 0;
+            while (lastLeaf.Left != null)
+            {
+                if (lastLeaf.Min < lastLeaf.Min)
+                    ok = false;
+                lastLeaf = lastLeaf.Left as Leaf;
+                count++;
+            }
+            if (count != elements.Count)
+                ok = false;
+
             while (lastLeaf.FatherNode.FatherNode.FatherNode == null)
             {
                 lastLeaf = Tree.Search(lastLeaf, value);
@@ -68,9 +177,8 @@ namespace FingerSearchTree
                 value = rnd.Next();
             }
 
-
-            int count = 0;
-            bool ok = true;
+            count = 0;
+            ok = true;
             while (lastLeaf.Left != null)
                 lastLeaf = lastLeaf.Left as Leaf;
             while (lastLeaf.Right != null)
@@ -103,7 +211,6 @@ namespace FingerSearchTree
                 }
                 value = rnd.Next();
             }
-
 
             count = 0;
             ok = true;

@@ -122,12 +122,56 @@ namespace Blocks
                 Block1 transferredBlockTo = Mate.Blocks1[0];
                 Node transferredNode = transferredBlockFrom.Nodes[transferredBlockFrom.Nodes.Count - 1];
 
-                bool wasFull = transferredBlockTo.IsFull;
+                bool wasFullBlockTo = transferredBlockTo.IsFull;
+                bool wasFullBlockFrom = transferredBlockFrom.IsFull;
 
                 transferredBlockFrom.Remove(transferredNode);
+
+                if (wasFullBlockFrom)
+                {
+                    if(transferredBlockFrom.Mate != null)
+                    {
+                        transferredBlockFrom.Mate.TransferToMate();
+                    }
+                    else if(transferredBlockFrom.Right != null && transferredBlockFrom.Right.Mate == null)
+                    {
+                        transferredBlockFrom.Mate = transferredBlockFrom.Right;
+                        transferredBlockFrom.Right.Mate = transferredBlockFrom;
+                        transferredBlockFrom.Mate.TransferToMate();
+                    }
+                    else if(transferredBlockFrom.Left != null && transferredBlockFrom.Left.Mate == null)
+                    {
+                        transferredBlockFrom.Mate = transferredBlockFrom.Left;
+                        transferredBlockFrom.Left.Mate = transferredBlockFrom;
+                        transferredBlockFrom.Mate.TransferToMate();
+                    }
+                    else if(transferredBlockFrom.Right != null)
+                    {
+                        Node sharedNode = transferredBlockFrom.Right.Nodes[0];
+                        bool wasFullRight = transferredBlockFrom.Right.IsFull;
+                        transferredBlockFrom.Right.Remove(sharedNode);
+                        if (wasFullRight)
+                        {
+                            transferredBlockFrom.Right.Mate.TransferToMate();
+                        }
+                        transferredBlockFrom.Add(transferredBlockFrom.Nodes.Count, sharedNode);
+                    }
+                    else if(transferredBlockFrom.Left != null)
+                    {
+                        Node sharedNode = transferredBlockFrom.Left.Nodes[transferredBlockFrom.Left.Nodes.Count - 1];
+                        bool wasFullLeft = transferredBlockFrom.Left.IsFull;
+                        transferredBlockFrom.Left.Remove(sharedNode);
+                        if(wasFullLeft)
+                        {
+                            transferredBlockFrom.Left.Mate.TransferToMate();
+                        }
+                        transferredBlockFrom.Add(0, sharedNode);
+                    }
+                }
+
                 transferredBlockTo.Add(0, transferredNode);
 
-                if (wasFull)
+                if (wasFullBlockTo)
                 {
                     if (transferredBlockTo.Mate == null)
                     {
@@ -156,12 +200,56 @@ namespace Blocks
                 Block1 transferredBlockTo = Mate.Blocks1[Mate.Blocks1.Count - 1];
                 Node transferredNode = transferredBlockFrom.Nodes[0];
 
-                bool wasFull = transferredBlockTo.IsFull;
+                bool wasFullBlockTo = transferredBlockTo.IsFull;
+                bool wasFullBlockFrom = transferredBlockFrom.IsFull;
 
                 transferredBlockFrom.Remove(transferredNode);
+
+                if (wasFullBlockFrom)
+                {
+                    if (transferredBlockFrom.Mate != null)
+                    {
+                        transferredBlockFrom.Mate.TransferToMate();
+                    }
+                    else if (transferredBlockFrom.Right != null && transferredBlockFrom.Right.Mate == null)
+                    {
+                        transferredBlockFrom.Mate = transferredBlockFrom.Right;
+                        transferredBlockFrom.Right.Mate = transferredBlockFrom;
+                        transferredBlockFrom.Mate.TransferToMate();
+                    }
+                    else if (transferredBlockFrom.Left != null && transferredBlockFrom.Left.Mate == null)
+                    {
+                        transferredBlockFrom.Mate = transferredBlockFrom.Left;
+                        transferredBlockFrom.Left.Mate = transferredBlockFrom;
+                        transferredBlockFrom.Mate.TransferToMate();
+                    }
+                    else if (transferredBlockFrom.Right != null)
+                    {
+                        Node sharedNode = transferredBlockFrom.Right.Nodes[0];
+                        bool wasFullRight = transferredBlockFrom.Right.IsFull;
+                        transferredBlockFrom.Right.Remove(sharedNode);
+                        if (wasFullRight)
+                        {
+                            transferredBlockFrom.Right.Mate.TransferToMate();
+                        }
+                        transferredBlockFrom.Add(transferredBlockFrom.Nodes.Count, sharedNode);
+                    }
+                    else if (transferredBlockFrom.Left != null)
+                    {
+                        Node sharedNode = transferredBlockFrom.Left.Nodes[transferredBlockFrom.Left.Nodes.Count - 1];
+                        bool wasFullLeft = transferredBlockFrom.Left.IsFull;
+                        transferredBlockFrom.Left.Remove(sharedNode);
+                        if (wasFullLeft)
+                        {
+                            transferredBlockFrom.Left.Mate.TransferToMate();
+                        }
+                        transferredBlockFrom.Add(0, sharedNode);
+                    }
+                }
+
                 transferredBlockTo.Add(transferredBlockTo.Nodes.Count, transferredNode);
 
-                if (wasFull)
+                if (wasFullBlockTo)
                 {
                     if (transferredBlockTo.Mate == null)
                     {
@@ -214,60 +302,60 @@ namespace Blocks
                 return;
             }
 
-            // If it is a pending block, then there is nothing else to do.
-            if (Pending)
-                return;
+            //// If it is a pending block, then there is nothing else to do.
+            //if (Pending)
+            //    return;
 
-            // If it is not the full mate in the pair of blocks2, then there is no need to perform the transfers.
-            if (wasFull == false || IsFull)
-            {
-                return;
-            }
+            //// If it is not the full mate in the pair of blocks2, then there is no need to perform the transfers.
+            //if (wasFull == false || IsFull)
+            //{
+            //    return;
+            //}
 
-            if (justForTransfer)
-                return;
+            //if (justForTransfer)
+            //    return;
 
-            //If it was the full mate, then we try to transfer a node from its mate, as long as it has one.
-            if (Mate != null)
-            {
-                Mate.TransferToMate();
-            }
-            else if (Right != null && Right.Mate == null) // If there is no mate but there is a right block1 that also has no mate, we make the pair and then transfer.
-            {
-                Mate = Right;
-                Right.Mate = this;
-                Mate.TransferToMate();
-            }
-            else if (Left != null && Left.Mate == null) // If there is no mate but there is a left block1 that also has no mate, we make a pair and transfer.
-            {
-                Mate = Left;
-                Left.Mate = this;
-                Mate.TransferToMate();
-            }
-            else if (Right != null && Right.Pending) // If there is a pending block to the right, then form a pair with this pending block.
-            {
-                Right.Pending = false;
-                Right.Mate = this;
-                Mate = Right;
-                Mate.TransferToMate();
-            }
-            else if (Left != null && Left.Pending) // If there is a pending block to the left, then form a pair with this pending block.
-            {
-                Left.Pending = false;
-                Left.Mate = this;
-                Mate = Left;
-                Mate.TransferToMate();
-            }
-            else if (Right != null) // If there is a right block1, but is not pending, then set this as the pending block.
-            {
-                Mate = Right;
-                Pending = true;
-            }
-            else if (Left != null) // If there is a left block1, but is not pending, then set this as the pending block.
-            {
-                Mate = Left;
-                Pending = true;
-            }
+            ////If it was the full mate, then we try to transfer a node from its mate, as long as it has one.
+            //if (Mate != null)
+            //{
+            //    Mate.TransferToMate();
+            //}
+            //else if (Right != null && Right.Mate == null) // If there is no mate but there is a right block1 that also has no mate, we make the pair and then transfer.
+            //{
+            //    Mate = Right;
+            //    Right.Mate = this;
+            //    Mate.TransferToMate();
+            //}
+            //else if (Left != null && Left.Mate == null) // If there is no mate but there is a left block1 that also has no mate, we make a pair and transfer.
+            //{
+            //    Mate = Left;
+            //    Left.Mate = this;
+            //    Mate.TransferToMate();
+            //}
+            //else if (Right != null && Right.Pending) // If there is a pending block to the right, then form a pair with this pending block.
+            //{
+            //    Right.Pending = false;
+            //    Right.Mate = this;
+            //    Mate = Right;
+            //    Mate.TransferToMate();
+            //}
+            //else if (Left != null && Left.Pending) // If there is a pending block to the left, then form a pair with this pending block.
+            //{
+            //    Left.Pending = false;
+            //    Left.Mate = this;
+            //    Mate = Left;
+            //    Mate.TransferToMate();
+            //}
+            //else if (Right != null) // If there is a right block1, but is not pending, then set this as the pending block.
+            //{
+            //    Mate = Right;
+            //    Pending = true;
+            //}
+            //else if (Left != null) // If there is a left block1, but is not pending, then set this as the pending block.
+            //{
+            //    Mate = Left;
+            //    Pending = true;
+            //}
         }
 
         internal bool IsBreakPossible()
