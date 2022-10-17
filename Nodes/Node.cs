@@ -131,13 +131,13 @@ namespace Nodes
             middle.Node = this;
 
             // Make sure the left/right pointers are set correctly.
+            Block2 right = left.Right;
             left.Right = middle;
             middle.Left = left;
+            middle.Right = right;
 
-            if (position < Blocks2.Count - 1)
+            if (right!= null)
             {
-                Block2 right = Blocks2[position + 1];
-                middle.Right = right;
                 right.Left = middle;
             }
 
@@ -151,19 +151,23 @@ namespace Nodes
             middle.Node = this;
 
             // Make sure the left/right pointers are set correctly.
+            Block2 left = null;
+            Block2 right = null;
+
             if (position != 0)
             {
-                Block2 left = Blocks2[position - 1];
-                middle.Left = left;
+                left = Blocks2[position - 1];
                 left.Right = middle;
             }
 
             if (position < Blocks2.Count - 1)
             {
-                Block2 right = Blocks2[position + 1];
-                middle.Right = right;
+                right = Blocks2[position + 1];
                 right.Left = middle;
             }
+
+            middle.Left = left;
+            middle.Right = right;
         }
 
         internal void Remove(Block2 e)
@@ -172,14 +176,8 @@ namespace Nodes
 
             Blocks2.Remove(e);
 
-            Block2 right = null;
-            Block2 left = null;
-
-            // Sort the left right pointers.
-            if (position != 0)
-                left = Blocks2[position - 1];
-            if (position <= Blocks2.Count - 1)
-                right = Blocks2[position];
+            Block2 right = e.Right;
+            Block2 left = e.Left;
 
             if (left != null)
                 left.Right = right;
