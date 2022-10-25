@@ -172,8 +172,6 @@ namespace Nodes
 
         internal void Remove(Block2 e)
         {
-            int position = Blocks2.FindIndex(x => x == e);
-
             Blocks2.Remove(e);
 
             Block2 right = e.Right;
@@ -185,7 +183,12 @@ namespace Nodes
                 right.Left = left;
 
             if (Blocks2.Count == 0)
+            {
                 Father.Remove(this);
+                if(Group.Nodes.Remove(this) == false)
+                { }
+                Group = null;
+            }
         }
     }
 }

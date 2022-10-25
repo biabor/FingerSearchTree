@@ -21,10 +21,6 @@ namespace GroupAndComponent
 
         public List<Node> Nodes = new List<Node>();
 
-        public Group Mate { get; set; } = null;
-
-        public Block1 Incr { get; set; } = null;
-
         public Group(Node node)
         {
             Nodes.Add(node);
@@ -158,7 +154,7 @@ namespace GroupAndComponent
                 left.Nodes.Remove(last);
                 last.Group = new Group(last)
                 {
-                    IsSplitGroup = left.IsSplitGroup,
+                    IsSplitGroup = left.IsSplitGroup, //TODO vezi daca chiar e left
                     Component = left.Component
                 };
                 return last.Group;

@@ -66,6 +66,7 @@ namespace FingerSearchTree
             }
             else if (4 * Helpers.Fi(fatherNode.Level) < fatherNode.Degree && fatherNode.Degree < Helpers.BiP(fatherNode.Level) && fatherNode.Blocks2.Count > 1)
             {
+                fatherNode.Group.IsSplitGroup = true;
                 Block2 firstBlock2 = fatherNode.Blocks2[0];
                 Block2 secondBlock2 = firstBlock2.Right;
                 if (secondBlock2.Degree <= firstBlock2.Degree)
@@ -100,6 +101,37 @@ namespace FingerSearchTree
         private static void DeleteLeaf(Leaf leaf)
         {
             DeleteNode(leaf);
+
+            Node fatherNode = leaf.FatherNode;
+            Group fatherGroup = fatherNode.Group;
+            Group left = fatherGroup.Left(fatherNode);
+            Group right = fatherGroup.Right(fatherNode);
+
+
+            if (fatherGroup.Degree <= Helpers.Fi(fatherGroup.Level))
+            {
+                fatherGroup.IsSplitGroup = false;
+                if (left != null && left.Degree <= 4 * Helpers.Ai(left.Level) && left.Block2.Node == fatherGroup.Block2.Node && left.IsSplitGroup == false)
+                {
+                    if (left.Degree + fatherGroup.Degree <= 4 * Helpers.Fi(fatherGroup.Level))
+                        fatherGroup = GFuse(fatherGroup, left);
+                    else
+                    {
+                        MultiBreak(left);
+                        GShare(fatherGroup, left);
+                    }
+                }
+                if (fatherGroup.Degree <= Helpers.Fi(fatherGroup.Level) && right != null && right.Degree <= 4 * Helpers.Ai(right.Level) && right.Block2.Node == fatherGroup.Block2.Node && right.IsSplitGroup == false)
+                {
+                    if (right.Degree + fatherGroup.Degree <= 4 * Helpers.Fi(fatherGroup.Level))
+                        GFuse(fatherGroup, right);
+                    else
+                    {
+                        MultiBreak(right);
+                        GShare(fatherGroup, right);
+                    }
+                }
+            }
         }
 
         private static void Update(Leaf leaf)
@@ -109,17 +141,16 @@ namespace FingerSearchTree
 
             MultiBreak(rGroup);
 
-            if (4 * Helpers.Fi(r.Level) < rGroup.Degree && rGroup.Degree < Helpers.BiP(r.Level))
-                rGroup.IsSplitGroup = true;
+            rGroup.IsSplitGroup = 4 * Helpers.Fi(r.Level) < rGroup.Degree;
 
             if (rGroup.Degree <= Helpers.Ai(r.Level)) //if it contains one block1
             {
                 Group rLeft = rGroup.Left(r);
                 Group rRight = rGroup.Right(r);
 
-                if (rLeft != null)
+                if (rLeft != null && rLeft.Degree < 4 * Helpers.Fi(r.Level) && rLeft.Block2.Node == rGroup.Block2.Node && rLeft.IsSplitGroup == false)
                 {
-                    if (rLeft.Degree + rGroup.Degree <= 4 * Helpers.Fi(r.Level + 1))
+                    if (rLeft.Degree + rGroup.Degree <= 4 * Helpers.Fi(r.Level))
                         rGroup = GFuse(rGroup, rLeft);
                     else
                     {
@@ -127,9 +158,9 @@ namespace FingerSearchTree
                         GShare(rGroup, rLeft);
                     }
                 }
-                else if (rRight != null)
+                if (rGroup.Degree <= Helpers.Ai(r.Level) && rRight != null && rRight.Degree < 4 * Helpers.Fi(r.Level) && rRight.Block2.Node == rGroup.Block2.Node && rRight.IsSplitGroup == false)
                 {
-                    if (rRight.Degree + rGroup.Degree <= 4 * Helpers.Fi(r.Level + 1))
+                    if (rRight.Degree + rGroup.Degree <= 4 * Helpers.Fi(r.Level))
                         rGroup = GFuse(rGroup, rRight);
                     else
                     {
@@ -142,17 +173,11 @@ namespace FingerSearchTree
             if (rGroup.Block2 != null)
             {
                 Block1 qZ = r.Father;
-                Node uP = qZ.NewNode;
+                Node uP = qZ.Father.Node;
                 Group z = uP.Group;
-
-                Block1 qX = uP.Father;
 
                 if (4 * Helpers.Fi(uP.Level) < z.Degree && z.Degree < Helpers.BiP(uP.Level))
                 {
-                    // If the size of uP is less than fi, then its unique block2 is moved to an adjacent
-                    // node under construction.There is surely at least one such node, since we
-                    // assumed that z is in the secure interval.
-                    // Then, a fusion or a sharing operation between blocks2 is performed by using the operations Add and Remove. ??????? TODO
                     if (uP.Degree <= Helpers.Fi(uP.Level))
                     {
                         Block2 toBeMoved = uP.Blocks2[0];
@@ -198,59 +223,31 @@ namespace FingerSearchTree
                     {
                         Split(uP);
                     }
-                    qX = uP.Father;
-                    if (qX != null && qX.Degree < Helpers.Ai(uP.Level) && qX.Mate == null && (qX.Left != null || qX.Right != null))
+
+                    Block1 qX = uP.Father;
+                    if (qX != null)
                     {
-                        if (qX.Left != null && (qX.OldNode == qX.Left.OldNode || qX.NewNode == qX.Left.OldNode))
+                        if (qX.Mate == null && qX.Right != null && qX.Right.Mate == null)
                         {
-                            // Update qx.oldnoded and qx.newnode as Lines 22-26 of Delete(l) - TODO
-                            if (qX.OldNode.Group.Valid == false)
-                                qX.OldNode = qX.NewNode;
-                            qX.OldNode.Group = qX.Father.Group;
-                            qX.NewNode = qX.Father.Node;
-
-
-                            if (qX.Left.Mate == null)
-                            {
-                                qX.Left.Mate = qX;
-                                qX.Mate = qX.Left;
-                            }
-                            else if (qX.Right != null && qX.Right.Mate == null)
-                            {
-                                qX.Right.Mate = qX;
-                                qX.Mate = qX.Right;
-                            }
+                            qX.Mate = qX.Right;
+                            qX.Right.Mate = qX;
                         }
-                        else if (qX.Right != null && (qX.OldNode == qX.Right.OldNode || qX.NewNode == qX.Right.OldNode))
+                        if (qX.Mate == null && qX.Left != null && qX.Left.Mate == null)
                         {
-                            // Update qx.oldnode and qx.newnode as Lines 22-26 of Delete(l) - TODO
-                            if (qX.OldNode.Group.Valid == false)
-                                qX.OldNode = qX.NewNode;
-                            qX.OldNode.Group = qX.Father.Group;
-                            qX.NewNode = qX.Father.Node;
-
-                            if (qX.Right.Mate == null)
-                            {
-                                qX.Right.Mate = qX;
-                                qX.Mate = qX.Right;
-                            }
-                            else if (qX.Left != null && qX.Left.Mate == null)
-                            {
-                                qX.Left.Mate = qX;
-                                qX.Mate = qX.Left;
-                            }
+                            qX.Mate = qX.Left;
+                            qX.Left.Mate = qX;
                         }
                     }
                 }
                 else
                 {
                     z.IsSplitGroup = false;
-                    // Lines 5-33 of the Delete(l) algorithm.
 
+                    Block1 qX = uP.Father;
                     if (z.Degree < Helpers.Fi(z.Level))
                     {
                         Group y = z.Right(uP);
-                        if (y != null && y.Block2 == qX.Father && z.Degree + y.Degree < 4 * Helpers.Fi(uP.Level) && y.Mate == null)
+                        if (y != null && y.Block2 == qX.Father && z.Degree + y.Degree < 4 * Helpers.Fi(uP.Level) && y.Block2.Node == z.Block2.Node && y.IsSplitGroup == false)
                         {
                             int temp = y.Degree;
                             y = GFuse(z, y);
@@ -259,32 +256,32 @@ namespace FingerSearchTree
                             if (y.Degree < Helpers.Fi(y.Level) && temp < Helpers.Ai(y.Level))
                             {
                                 Group w = y.Left(uP);
-                                if (w != null && w.Block2 == qX.Father && y.Degree + w.Degree < 4 * Helpers.Fi(y.Level) && w.Mate == null)
+                                if (w != null && w.Block2 == qX.Father && y.Degree + w.Degree < 4 * Helpers.Fi(y.Level) && w.Block2.Node == y.Block2.Node && w.IsSplitGroup == false)
                                 {
                                     temp = w.Degree;
                                     w = GFuse(y, w);
-                                    qX.Remove(y.Nodes[0]); // Sau up.right? TODO 
+                                    qX.Remove(y.Nodes[0]); 
 
                                     if (w.Degree < Helpers.Fi(w.Level) && temp < Helpers.Ai(w.Level))
                                     {
                                         Group t = w.Right(uP);
-                                        if (t != null && t.Block2 == qX.Father && w.Degree + t.Degree < 4 * Helpers.Fi(w.Level) && t.Mate == null)
+                                        if (t != null && t.Block2 == qX.Father && w.Degree + t.Degree < 4 * Helpers.Fi(w.Level) && t.Block2.Node == w.Block2.Node && t.IsSplitGroup == false)
                                         {
                                             temp = t.Degree;
                                             t = GFuse(w, t);
-                                            qX.Remove(w.Nodes[0]); // Sau up.right? TODO 
+                                            qX.Remove(w.Nodes[0]);
 
                                             if (t.Degree < Helpers.Fi(t.Level) && temp < Helpers.Ai(t.Level))
                                             {
                                                 Group tP = t.Left(uP);
-                                                if (tP != null && tP.Block2 == qX.Father && t.Degree + tP.Degree < 4 * Helpers.Fi(t.Level) && tP.Mate == null)
+                                                if (tP != null && tP.Block2 == qX.Father && t.Degree + tP.Degree < 4 * Helpers.Fi(t.Level) && tP.Block2.Node == t.Block2.Node && tP.IsSplitGroup == false)
                                                 {
                                                     GFuse(t, tP);
                                                     qX.Remove(t.Nodes[0]);
                                                 }
                                             }
                                         }
-                                        else if (w.Left(uP) != null && w.Left(uP).Block2 == qX.Father && w.Degree + w.Left(uP).Degree < 4 * Helpers.Fi(w.Level) && w.Left(uP).Mate == null)
+                                        else if (w.Left(uP) != null && w.Left(uP).Block2 == qX.Father && w.Degree + w.Left(uP).Degree < 4 * Helpers.Fi(w.Level) && w.Left(uP).Block2.Node == w.Block2.Node && w.Left(uP).IsSplitGroup == false)
                                         {
                                             Group tP = w.Left(uP);
                                             GFuse(w, tP);
@@ -292,7 +289,7 @@ namespace FingerSearchTree
                                         }
                                     }
                                 }
-                                else if (y.Right(uP) != null && y.Right(uP).Block2 == qX.Father && y.Degree + y.Right(uP).Degree < 4 * Helpers.Fi(y.Level) && y.Right(uP).Mate == null)
+                                else if (y.Right(uP) != null && y.Right(uP).Block2 == qX.Father && y.Degree + y.Right(uP).Degree < 4 * Helpers.Fi(y.Level) && y.Right(uP).Block2.Node == y.Block2.Node && y.Right(uP).IsSplitGroup == false)
                                 {
                                     Group t = y.Right(uP);
                                     GFuse(y, t);
@@ -300,7 +297,7 @@ namespace FingerSearchTree
                                 }
                             }
                         }
-                        else if (z.Left(uP) != null && z.Left(uP).Block2 == qX.Father && z.Degree + z.Left(uP).Degree < 4 * Helpers.Fi(uP.Level) && z.Left(uP).Mate == null)
+                        else if (z.Left(uP) != null && z.Left(uP).Block2 == qX.Father && z.Degree + z.Left(uP).Degree < 4 * Helpers.Fi(uP.Level) && z.Left(uP).Block2.Node == z.Block2.Node && z.Left(uP).IsSplitGroup == false)
                         {
                             Group w = z.Left(uP);
                             int temp = w.Degree;
@@ -310,7 +307,7 @@ namespace FingerSearchTree
                             if (w.Degree < Helpers.Fi(w.Level) && temp < Helpers.Ai(w.Level))
                             {
                                 Group tP = w.Left(uP);
-                                if (tP != null && tP.Block2 == qX.Father && w.Degree + tP.Degree < 4 * Helpers.Fi(w.Level) && tP.Mate == null)
+                                if (tP != null && tP.Block2 == qX.Father && w.Degree + tP.Degree < 4 * Helpers.Fi(w.Level) && tP.Block2.Node == w.Block2.Node && tP.IsSplitGroup == false)
                                 {
                                     GFuse(w, tP);
                                     qX.Remove(w.Nodes[0]);
@@ -318,164 +315,19 @@ namespace FingerSearchTree
                             }
                         }
                     }
-                    else if (z.Mate != null)
+
+                    qX = uP.Father;
+                    if (qX != null)
                     {
-                        Group g = z.Mate;
-                        if (z.Incr != null)
+                        if (qX.Mate == null && qX.Right != null && qX.Right.Mate == null)
                         {
-                            if (z.Incr.OldNode.Group.Valid == false)
-                                z.Incr.OldNode = z.Incr.NewNode;
-                            z.Incr.OldNode.Group = z;
-                            z.Incr.NewNode = z.Incr.Father.Node;
-                            if (z.Left(uP) == g)
-                            {
-                                if (z.Incr.Father.Group == z)
-                                {
-                                    if (z.Incr.Left != null && z.Incr.Left.Father.Group == z.Incr.Father.Group)
-                                        z.Incr = z.Incr.Left;
-                                    else
-                                    {
-                                        z.Incr = null;
-                                        z.Mate = null;
-                                        g.Mate = null;
-                                    }
-                                }
-                                else
-                                {
-                                    if (z.Incr.Right != null && z.Incr.Right.Father.Group == z.Incr.Father.Group)
-                                        z.Incr = z.Incr.Right;
-                                    else
-                                    {
-                                        z.Incr = null;
-                                        z.Mate = null;
-                                        g.Mate = null;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if (z.Incr.Father.Group == z)
-                                {
-                                    if (z.Incr.Right != null && z.Incr.Right.Father.Group == z.Incr.Father.Group)
-                                        z.Incr = z.Incr.Right;
-                                    else
-                                    {
-                                        z.Incr = null;
-                                        z.Mate = null;
-                                        g.Mate = null;
-                                    }
-                                }
-                                else
-                                {
-                                    if (z.Incr.Left != null && z.Incr.Left.Father.Group == z.Incr.Father.Group)
-                                        z.Incr = z.Incr.Left;
-                                    else
-                                    {
-                                        z.Incr = null;
-                                        z.Mate = null;
-                                        g.Mate = null;
-                                    }
-                                }
-                            }
+                            qX.Mate = qX.Right;
+                            qX.Right.Mate = qX;
                         }
-                        else
+                        if (qX.Mate == null && qX.Left != null && qX.Left.Mate == null)
                         {
-                            if (g.Incr.OldNode.Group.Valid == false)
-                                g.Incr.OldNode = g.Incr.NewNode;
-                            g.Incr.OldNode.Group = g;
-                            g.Incr.NewNode = g.Incr.Father.Node;
-                            if (g.Left(uP) == z)
-                            {
-                                if (g.Incr.Father.Group == g)
-                                {
-                                    if (g.Incr.Left != null && g.Incr.Left.Father.Group == g.Incr.Father.Group)
-                                        g.Incr = g.Incr.Left;
-                                    else
-                                    {
-                                        g.Incr = null;
-                                        g.Mate = null;
-                                        z.Mate = null;
-                                    }
-                                }
-                                else
-                                {
-                                    if (g.Incr.Right != null && g.Incr.Right.Father.Group == g.Incr.Father.Group)
-                                        g.Incr = g.Incr.Right;
-                                    else
-                                    {
-                                        g.Incr = null;
-                                        g.Mate = null;
-                                        z.Mate = null;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if (g.Incr.Father.Group == g)
-                                {
-                                    if (g.Incr.Right != null && g.Incr.Right.Father.Group == g.Incr.Father.Group)
-                                        g.Incr = g.Incr.Right;
-                                    else
-                                    {
-                                        g.Incr = null;
-                                        g.Mate = null;
-                                        z.Mate = null;
-                                    }
-                                }
-                                else
-                                {
-                                    if (g.Incr.Left != null && g.Incr.Left.Father.Group == g.Incr.Father.Group)
-                                        g.Incr = g.Incr.Left;
-                                    else
-                                    {
-                                        g.Incr = null;
-                                        g.Mate = null;
-                                        z.Mate = null;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (qX != null && qX.Degree < Helpers.Ai(qX.Father.Node.Level /* sau -1 TODO */ ) && qX.Mate == null && (qX.Left != null || qX.Right != null))
-                    {
-                        if (qX.Left != null && (qX.OldNode == qX.Left.OldNode || qX.NewNode == qX.Left.OldNode))
-                        {
-                            // Update qx.oldnoded and qx.newnode as Lines 22-26 of Delete(l) - TODO
-                            if (qX.OldNode.Group.Valid == false)
-                                qX.OldNode = qX.NewNode;
-                            qX.OldNode.Group = qX.Father.Group;
-                            qX.NewNode = qX.Father.Node;
-
-                            if (qX.Left.Mate == null)
-                            {
-                                qX.Left.Mate = qX;
-                                qX.Mate = qX.Left;
-                            }
-                            else if (qX.Right != null && qX.Right.Mate == null)
-                            {
-                                qX.Right.Mate = qX;
-                                qX.Mate = qX.Right;
-                            }
-                        }
-                        else if (qX.Right != null && (qX.OldNode == qX.Right.OldNode || qX.NewNode == qX.Right.OldNode))
-                        {
-                            // Update qx.oldnode and qx.newnode as Lines 22-26 of Delete(l) - TODO
-                            if (qX.OldNode.Group.Valid == false)
-                                qX.OldNode = qX.NewNode;
-                            qX.OldNode.Group = qX.Father.Group;
-                            qX.NewNode = qX.Father.Node;
-
-                            if (qX.Right.Mate == null)
-                            {
-                                qX.Right.Mate = qX;
-                                qX.Mate = qX.Right;
-                            }
-                            else if (qX.Left != null && qX.Left.Mate == null)
-                            {
-                                qX.Left.Mate = qX;
-                                qX.Mate = qX.Left;
-                            }
+                            qX.Mate = qX.Left;
+                            qX.Left.Mate = qX;
                         }
                     }
                 }
@@ -548,8 +400,6 @@ namespace FingerSearchTree
             }
             else
             {
-                f = father.OldNode != null && father.OldNode.Group.Valid ? father.OldNode : father.NewNode ?? father.Father.Node;
-
                 if (f.Group.Valid == false)
                 {
                     if (f.Group.Nodes.Count == 1)
@@ -601,9 +451,6 @@ namespace FingerSearchTree
 
         private static Group GFuse(Group g, Group gP)
         {
-            if (g.Mate != null || gP.Mate != null)
-                return null;
-
             if (g.Nodes.Count == 1 && gP.Degree <= Helpers.Ai(gP.Level))
             {
                 //Move the only block1 from gp to g.
@@ -613,28 +460,28 @@ namespace FingerSearchTree
                     Block2 toBeMovedFrom = gP.Nodes[gP.Nodes.Count - 1].Blocks2[gP.Nodes[gP.Nodes.Count - 1].Blocks2.Count - 1];
                     Block1 toBeMoved = toBeMovedFrom.Blocks1[toBeMovedFrom.Blocks1.Count - 1];
 
+                    if (toBeMovedFrom.Node.Component.Valid && toBeMovedFrom.Node.Component.Root == toBeMovedFrom.Node)
+                        toBeMovedFrom.Node.Component.Valid = false;
+
+                    toBeMovedFrom.Node.Group.Nodes.Remove(toBeMovedFrom.Node);
+
+                    if (toBeMovedIn.Node.Component.Valid && toBeMovedIn.Node.Component.Root == toBeMovedIn.Node)
+                        toBeMovedIn.Node.Component.Valid = false;
+
                     toBeMovedFrom.Remove(toBeMoved);
 
                     Node fatherNode = toBeMovedFrom.Node;
-                    if (fatherNode.Blocks2.Count == 0)
-                        fatherNode.Father.Remove(fatherNode);
                     if (fatherNode.FatherNode != null && fatherNode.FatherNode.Degree == 1)
                     {
-                        Node newRoot = fatherNode.Right;
-                        newRoot.Left = null;
-                        newRoot.Right = null;
-                        newRoot.Father = null;
+                        toBeMovedIn.Node.Left = null;
+                        toBeMovedIn.Node.Right = null;
+                        toBeMovedIn.Node.Father = null;
                     }
 
                     toBeMovedIn.Add(0, toBeMoved);
 
                     if (toBeMovedIn.IsFull)
-                    {
-
-                    }
-
-                    toBeMoved.NewNode = toBeMovedFrom.Node;
-                    toBeMoved.OldNode = toBeMovedIn.Node;
+                    { }
                 }
                 else
                 {
@@ -642,28 +489,28 @@ namespace FingerSearchTree
                     Block2 toBeMovedFrom = gP.Nodes[0].Blocks2[0];
                     Block1 toBeMoved = toBeMovedFrom.Blocks1[0];
 
+                    if (toBeMovedFrom.Node.Component.Valid && toBeMovedFrom.Node.Component.Root == toBeMovedFrom.Node)
+                        toBeMovedFrom.Node.Component.Valid = false;
+
+                    toBeMovedFrom.Node.Group.Nodes.Remove(toBeMovedFrom.Node);
+
+                    if (toBeMovedIn.Node.Component.Valid && toBeMovedIn.Node.Component.Root == toBeMovedIn.Node)
+                        toBeMovedIn.Node.Component.Valid = false;
+
                     toBeMovedFrom.Remove(toBeMoved);
 
                     Node fatherNode = toBeMovedFrom.Node;
-                    if (fatherNode.Blocks2.Count == 0)
-                        fatherNode.Father.Remove(fatherNode);
                     if (fatherNode.FatherNode != null && fatherNode.FatherNode.Degree == 1)
                     {
-                        Node newRoot = fatherNode.Left;
-                        newRoot.Left = null;
-                        newRoot.Right = null;
-                        newRoot.Father = null;
+                        toBeMovedIn.Node.Left = null;
+                        toBeMovedIn.Node.Right = null;
+                        toBeMovedIn.Node.Father = null;
                     }
 
                     toBeMovedIn.Add(toBeMovedIn.Blocks1.Count, toBeMoved);
 
                     if (toBeMovedIn.IsFull)
-                    {
-
-                    }
-
-                    toBeMoved.NewNode = toBeMovedFrom.Node;
-                    toBeMoved.OldNode = toBeMovedIn.Node;
+                    { }
                 }
                 return g;
             }
@@ -676,28 +523,28 @@ namespace FingerSearchTree
                     Block2 toBeMovedFrom = g.Nodes[g.Nodes.Count - 1].Blocks2[g.Nodes[g.Nodes.Count - 1].Blocks2.Count - 1];
                     Block1 toBeMoved = toBeMovedFrom.Blocks1[toBeMovedFrom.Blocks1.Count - 1];
 
+                    if (toBeMovedFrom.Node.Component.Valid && toBeMovedFrom.Node.Component.Root == toBeMovedFrom.Node)
+                        toBeMovedFrom.Node.Component.Valid = false;
+
+                    toBeMovedFrom.Node.Group.Nodes.Remove(toBeMovedFrom.Node);
+
+                    if (toBeMovedIn.Node.Component.Valid && toBeMovedIn.Node.Component.Root == toBeMovedIn.Node)
+                        toBeMovedIn.Node.Component.Valid = false;
+
                     toBeMovedFrom.Remove(toBeMoved);
 
                     Node fatherNode = toBeMovedFrom.Node;
-                    if (fatherNode.Blocks2.Count == 0)
-                        fatherNode.Father.Remove(fatherNode);
                     if (fatherNode.FatherNode != null && fatherNode.FatherNode.Degree == 1)
                     {
-                        Node newRoot = fatherNode.Right;
-                        newRoot.Left = null;
-                        newRoot.Right = null;
-                        newRoot.Father = null;
+                        toBeMovedIn.Node.Left = null;
+                        toBeMovedIn.Node.Right = null;
+                        toBeMovedIn.Node.Father = null;
                     }
 
                     toBeMovedIn.Add(0, toBeMoved);
 
                     if (toBeMovedIn.IsFull)
-                    {
-
-                    }
-
-                    toBeMoved.NewNode = toBeMovedFrom.Node;
-                    toBeMoved.OldNode = toBeMovedIn.Node;
+                    { }
                 }
                 else
                 {
@@ -705,34 +552,31 @@ namespace FingerSearchTree
                     Block2 toBeMovedFrom = g.Nodes[0].Blocks2[0];
                     Block1 toBeMoved = toBeMovedFrom.Blocks1[0];
 
+                    if (toBeMovedFrom.Node.Component.Valid && toBeMovedFrom.Node.Component.Root == toBeMovedFrom.Node)
+                        toBeMovedFrom.Node.Component.Valid = false;
+
+                    toBeMovedFrom.Node.Group.Nodes.Remove(toBeMovedFrom.Node);
+
+                    if (toBeMovedIn.Node.Component.Valid && toBeMovedIn.Node.Component.Root == toBeMovedIn.Node)
+                        toBeMovedIn.Node.Component.Valid = false;
+
                     toBeMovedFrom.Remove(toBeMoved);
 
                     Node fatherNode = toBeMovedFrom.Node;
-                    if (fatherNode.Blocks2.Count == 0)
-                        fatherNode.Father.Remove(fatherNode);
                     if (fatherNode.FatherNode != null && fatherNode.FatherNode.Degree == 1)
                     {
-                        Node newRoot = fatherNode.Left;
-                        newRoot.Left = null;
-                        newRoot.Right = null;
-                        newRoot.Father = null;
+                        toBeMovedIn.Node.Left = null;
+                        toBeMovedIn.Node.Right = null;
+                        toBeMovedIn.Node.Father = null;
                     }
 
                     toBeMovedIn.Add(toBeMovedIn.Blocks1.Count, toBeMoved);
 
                     if (toBeMovedIn.IsFull)
-                    {
-
-                    }
-
-                    toBeMoved.NewNode = toBeMovedFrom.Node;
-                    toBeMoved.OldNode = toBeMovedIn.Node;
+                    { }
                 }
                 return gP;
             }
-
-            g.Mate = gP;
-            gP.Mate = g;
 
             if (g.Degree <= Helpers.Fi(g.Level))
             {
@@ -742,11 +586,20 @@ namespace FingerSearchTree
                     Node toBeMovedTo = gP.Nodes[gP.Nodes.Count - 1];
                     Block2 toBeMoved = toBeMovedFrom.Blocks2[0];
 
-                    toBeMovedFrom.Remove(toBeMoved);
-                    toBeMovedTo.Add(toBeMovedTo.Blocks2.Count, toBeMoved);
+                    if (toBeMovedFrom.Component.Valid && toBeMovedFrom.Component.Root == toBeMovedFrom)
+                        toBeMovedFrom.Component.Valid = false;
 
-                    // set gP.incr to the leftmost block1 of G if G is to the right of gP
-                    gP.Incr = toBeMoved.Blocks1[0];
+                    if (toBeMovedTo.Component.Valid && toBeMovedTo.Component.Root == toBeMovedTo)
+                        toBeMovedTo.Component.Valid = false;
+
+                    toBeMovedFrom.Remove(toBeMoved);
+                    if (toBeMovedFrom.FatherNode != null && toBeMovedFrom.FatherNode.Degree == 1)
+                    {
+                        toBeMovedTo.Left = null;
+                        toBeMovedTo.Right = null;
+                        toBeMovedTo.Father = null;
+                    }
+                    toBeMovedTo.Add(toBeMovedTo.Blocks2.Count, toBeMoved);
                 }
                 else
                 {
@@ -754,11 +607,21 @@ namespace FingerSearchTree
                     Node toBeMovedTo = gP.Nodes[0];
                     Block2 toBeMoved = toBeMovedFrom.Blocks2[toBeMovedFrom.Blocks2.Count - 1];
 
-                    toBeMovedFrom.Remove(toBeMoved);
-                    toBeMovedTo.Add(0, toBeMoved);
+                    if (toBeMovedFrom.Component.Valid && toBeMovedFrom.Component.Root == toBeMovedFrom)
+                        toBeMovedFrom.Component.Valid = false;
 
-                    // set gP.incr to the rightmost block1 of G if G is to the left of gP
-                    gP.Incr = toBeMoved.Blocks1[toBeMoved.Blocks1.Count - 1];
+                    if (toBeMovedTo.Component.Valid && toBeMovedTo.Component.Root == toBeMovedTo)
+                        toBeMovedTo.Component.Valid = false;
+
+                    toBeMovedFrom.Remove(toBeMoved);
+                    if (toBeMovedFrom.FatherNode != null && toBeMovedFrom.FatherNode.Degree == 1)
+                    {
+                        toBeMovedTo.Left = null;
+                        toBeMovedTo.Right = null;
+                        toBeMovedTo.Father = null;
+                    }
+
+                    toBeMovedTo.Add(0, toBeMoved);
                 }
 
                 return gP;
@@ -771,11 +634,21 @@ namespace FingerSearchTree
                     Node toBeMovedTo = g.Nodes[g.Nodes.Count - 1];
                     Block2 toBeMoved = toBeMovedFrom.Blocks2[0];
 
-                    toBeMovedFrom.Remove(toBeMoved);
-                    toBeMovedTo.Add(toBeMovedTo.Blocks2.Count, toBeMoved);
+                    if (toBeMovedFrom.Component.Valid && toBeMovedFrom.Component.Root == toBeMovedFrom)
+                        toBeMovedFrom.Component.Valid = false;
 
-                    // set g.incr to the leftmost block1 of gP if gP is to the right of g
-                    g.Incr = toBeMoved.Blocks1[0];
+                    if (toBeMovedTo.Component.Valid && toBeMovedTo.Component.Root == toBeMovedTo)
+                        toBeMovedTo.Component.Valid = false;
+
+                    toBeMovedFrom.Remove(toBeMoved);
+                    if (toBeMovedFrom.FatherNode != null && toBeMovedFrom.FatherNode.Degree == 1)
+                    {
+                        toBeMovedTo.Left = null;
+                        toBeMovedTo.Right = null;
+                        toBeMovedTo.Father = null;
+                    }
+
+                    toBeMovedTo.Add(toBeMovedTo.Blocks2.Count, toBeMoved);
                 }
                 else
                 {
@@ -783,11 +656,21 @@ namespace FingerSearchTree
                     Node toBeMovedTo = g.Nodes[0];
                     Block2 toBeMoved = toBeMovedFrom.Blocks2[toBeMovedFrom.Blocks2.Count - 1];
 
-                    toBeMovedFrom.Remove(toBeMoved);
-                    toBeMovedTo.Add(0, toBeMoved);
+                    if (toBeMovedFrom.Component.Valid && toBeMovedFrom.Component.Root == toBeMovedFrom)
+                        toBeMovedFrom.Component.Valid = false;
 
-                    // set g.incr to the rightmost block1 of gP if gP is to the left of g
-                    g.Incr = toBeMoved.Blocks1[toBeMoved.Blocks1.Count - 1];
+                    if (toBeMovedTo.Component.Valid && toBeMovedTo.Component.Root == toBeMovedTo)
+                        toBeMovedTo.Component.Valid = false;
+
+                    toBeMovedFrom.Remove(toBeMoved);
+                    if (toBeMovedFrom.FatherNode != null && toBeMovedFrom.FatherNode.Degree == 1)
+                    {
+                        toBeMovedTo.Left = null;
+                        toBeMovedTo.Right = null;
+                        toBeMovedTo.Father = null;
+                    }
+
+                    toBeMovedTo.Add(0, toBeMoved);
                 }
 
                 return g;
@@ -798,12 +681,6 @@ namespace FingerSearchTree
 
         private static void GShare(Group g, Group gP)
         {
-            if (g.Mate != null || gP.Mate != null)
-                return;
-
-            g.Mate = gP;
-            gP.Mate = g;
-
             if (g.Degree <= Helpers.Ai(g.Level))
             {
                 //Move a block2 from gp to g.
@@ -825,7 +702,8 @@ namespace FingerSearchTree
                     toBeRemoved.Remove(onlyBlockTo);
                     toBeMoved.Add(0, onlyBlockTo);
 
-                    g.Incr = onlyBlockTo.Left;
+                    if (toBeMoved.IsFull)
+                    { }
                 }
                 else
                 {
@@ -842,8 +720,8 @@ namespace FingerSearchTree
 
                     toBeRemoved.Remove(onlyBlockTo);
                     toBeMoved.Add(0, onlyBlockTo);
-
-                    g.Incr = onlyBlockTo.Right;
+                    if (toBeMoved.IsFull)
+                    { }
                 }
             }
             else
@@ -867,7 +745,8 @@ namespace FingerSearchTree
                     toBeRemoved.Remove(onlyBlockTo);
                     toBeMoved.Add(0, onlyBlockTo);
 
-                    gP.Incr = onlyBlockTo.Left;
+                    if (toBeMoved.IsFull)
+                    { }
                 }
                 else
                 {
@@ -884,8 +763,8 @@ namespace FingerSearchTree
 
                     toBeRemoved.Remove(onlyBlockTo);
                     toBeMoved.Add(0, onlyBlockTo);
-
-                    gP.Incr = onlyBlockTo.Right;
+                    if (toBeMoved.IsFull)
+                    { }
                 }
             }
         }
@@ -937,13 +816,12 @@ namespace FingerSearchTree
             if (node.FatherNode == null)
             {
                 new Node(new Block2(new Block1(node)));
-                node.Father.NewNode = node.FatherNode;
                 node.Father.Father.Group = node.FatherNode.Group;
             }
 
-            AddNode(node, newNode);
+            GAdd(newNode, node);
 
-            GAdd(newNode, node.Group);
+            AddNode(node, newNode);
         }
 
         private static void AddNode(Node left, Node newNode)
@@ -977,16 +855,12 @@ namespace FingerSearchTree
                 father.Mate = null;
             }
 
-
-
             // if it is a pending object there is no transfer needed. But if it became full then break it from the pair.
             if (grandfather.Pending && grandfather.IsFull)
             {
                 grandfather.Pending = false;
                 grandfather.Mate = null;
             }
-
-
 
             // if the block2 was already full before the insert, the treansfer one block1 to the mate. 
             if (wasFullBlock2)
@@ -1017,9 +891,6 @@ namespace FingerSearchTree
                 }
                 grandfather.TransferToMate();
             }
-
-
-
 
             // if both blocks2 of them are full, and the break would not spoil invariant 5, then break the pair;
             if (grandfather.IsFull && grandfather.Mate != null && grandfather.Mate.IsFull && grandfather.IsBreakPossible())
@@ -1070,7 +941,6 @@ namespace FingerSearchTree
                     }
                 }
             }
-
         }
 
         private static void DeleteNode(Node node)
@@ -1170,11 +1040,12 @@ namespace FingerSearchTree
             }
         }
 
-        private static void GAdd(Node v, Group g)
+        private static void GAdd(Node v, Node l)
         {
+            Group g = l.Group;
             v.Group = g;
             v.Component = g.Component;
-            int position = g.Nodes.FindIndex(x => x == v.Left);
+            int position = g.Nodes.FindIndex(x => x == l);
             g.Nodes.Insert(position + 1, v);
         }
 

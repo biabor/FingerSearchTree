@@ -12,10 +12,6 @@ namespace Blocks
 
         public List<Node> Nodes = new List<Node>();
 
-        public Node OldNode { get; set; } = null;
-
-        public Node NewNode { get; set; } = null;
-
         public Block2 Father { get; set; } = null;
 
         public Block1 Left { get; set; } = null;
@@ -118,44 +114,13 @@ namespace Blocks
                     }
                 }
             }
+            Node right = left.Right;
             if (left != null)
             {
                 left.Right = middle;
             }
             middle.Left = left;
 
-            Node right = null;
-            if (position < Nodes.Count - 1)
-            {
-                right = Nodes[position + 1];
-            }
-            else
-            {
-                Block1 rightBlock1 = Right;
-                if (rightBlock1 != null)
-                {
-                    right = rightBlock1.Nodes[0];
-                }
-                else
-                {
-                    Block2 rightBlock2 = Father.Right;
-                    if (rightBlock2 != null)
-                    {
-                        rightBlock1 = rightBlock2.Blocks1[0];
-                        right = rightBlock1.Nodes[0];
-                    }
-                    else 
-                    {
-                        Node rightNode = Father.Node.Right;
-                        if (rightNode != null)
-                        {
-                            rightBlock2 = rightNode.Blocks2[0];
-                            rightBlock1 = rightBlock2.Blocks1[0];
-                            right = rightBlock1.Nodes[0];
-                        }
-                    }
-                }
-            }
             if (right != null)
             {
                 right.Left = middle;
@@ -183,12 +148,10 @@ namespace Blocks
 
         internal void Remove(Node e)
         {
-
             // Remove it from the list of nodes.
             Nodes.Remove(e);
 
             // Sort the left right pointers. (in order for them not to point to e)
-
             Node left = e.Left;
             Node right = e.Right;
 
@@ -203,7 +166,6 @@ namespace Blocks
                 Father.Remove(this);
                 if (Mate != null)
                     Mate.Mate = null;
-                return;
             }
         }
     }

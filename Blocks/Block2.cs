@@ -82,8 +82,6 @@ namespace Blocks
             {
                 right.Left = middle;
             }
-
-            middle.NewNode = left.NewNode;
         }
 
         internal void Add(int position, Block1 middle)
@@ -100,14 +98,12 @@ namespace Blocks
             {
                 left = Blocks1[position - 1];
                 left.Right = middle;
-                middle.NewNode = left.NewNode;
             }
 
             if (position != Blocks1.Count - 1)
             {
                 right = Blocks1[position + 1];
                 right.Left = middle;
-                middle.NewNode = right.NewNode;
             }
 
             middle.Right = right;
@@ -121,7 +117,7 @@ namespace Blocks
                 Block1 transferredBlockFrom = Blocks1[Blocks1.Count - 1];
                 if (Mate.Blocks1.Count == 0)
                 {
-                    Mate.Blocks1.Add(new Block1() { NewNode = Mate.Node, Father = Mate });
+                    Mate.Blocks1.Add(new Block1() { Father = Mate });
                 }
                 Block1 transferredBlockTo = Mate.Blocks1[0];
                 Node transferredNode = transferredBlockFrom.Nodes[transferredBlockFrom.Nodes.Count - 1];
@@ -199,7 +195,7 @@ namespace Blocks
                 Block1 transferredBlockFrom = Blocks1[0];
                 if (Mate.Blocks1.Count == 0)
                 {
-                    Mate.Blocks1.Add(new Block1() { NewNode = Mate.Node, Father = Mate });
+                    Mate.Blocks1.Add(new Block1() { Father = Mate });
                 }
                 Block1 transferredBlockTo = Mate.Blocks1[Mate.Blocks1.Count - 1];
                 Node transferredNode = transferredBlockFrom.Nodes[0];
@@ -293,7 +289,6 @@ namespace Blocks
                 Node.Remove(this);
                 if (Pending == false && Mate != null)
                     Mate.Mate = null;
-                return;
             }
         }
 

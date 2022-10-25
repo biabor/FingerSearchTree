@@ -14,7 +14,6 @@ namespace Nodes
         public Leaf()
         {
             new Node(new Block2(new Block1(this)));
-            Father.NewNode = FatherNode;
             Father.Father.Group = FatherNode.Group;
         }
 

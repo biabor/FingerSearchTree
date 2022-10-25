@@ -1,6 +1,7 @@
 ﻿using Nodes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows.Forms;
 
 namespace FingerSearchTree
@@ -9,6 +10,10 @@ namespace FingerSearchTree
     {
         Leaf lastLeaf = null;
         List<int> elements = new List<int>();
+        Stopwatch swinsert = new Stopwatch();
+        Stopwatch swdelete = new Stopwatch();
+        long insertTime = 0;
+        long deleteTime = 0;
 
         public Form1()
         {
@@ -35,7 +40,7 @@ namespace FingerSearchTree
         {
             for (int i = 0; i < 100; i++)
             {
-                RandomInsert(1500);
+                RandomInsert(4000000);
                 RandomDelete();
             }
             //int value = int.Parse(textBox1.Text);
@@ -54,12 +59,15 @@ namespace FingerSearchTree
                 lastLeaf = Tree.Search(lastLeaf, value);
                 if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
                 {
+                    swinsert.Start();
                     lastLeaf = Tree.Insert(lastLeaf, value);
-                    elements.Add(value);
+                    swinsert.Stop();
                 }
 
+                elements.Add(value);
                 value = rnd.Next();
             }
+            insertTime = swinsert.ElapsedMilliseconds;
         }
 
         private void RandomDelete()
@@ -69,13 +77,16 @@ namespace FingerSearchTree
             {
                 int index = rnd.Next(elements.Count);
                 int value = elements[index];
+                elements.RemoveAt(index);
                 lastLeaf = Tree.Search(lastLeaf, value);
                 if (lastLeaf.Value == value)
                 {
+                    swdelete.Start();
                     lastLeaf = Tree.Delete(lastLeaf);
-                    elements.Remove(value);
+                    swdelete.Stop();
                 }
             }
+            deleteTime = swdelete.ElapsedMilliseconds;
         }
 
         private void RandomTest()
@@ -84,7 +95,7 @@ namespace FingerSearchTree
             int value = int.MaxValue;
 
             int count = 0;
-            bool ok = true;
+            bool ok;
             while (lastLeaf.Left != null)
                 lastLeaf = lastLeaf.Left as Leaf;
             while (lastLeaf.Right != null)
