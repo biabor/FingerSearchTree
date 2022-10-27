@@ -154,7 +154,7 @@ namespace GroupAndComponent
                 left.Nodes.Remove(last);
                 last.Group = new Group(last)
                 {
-                    IsSplitGroup = left.IsSplitGroup, //TODO vezi daca chiar e left
+                    IsSplitGroup = left.IsSplitGroup, 
                     Component = left.Component
                 };
                 return last.Group;

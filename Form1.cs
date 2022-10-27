@@ -38,11 +38,9 @@ namespace FingerSearchTree
 
         private void deleteBtn__Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < 100; i++)
-            {
                 RandomInsert(4000000);
                 RandomDelete();
-            }
+
             //int value = int.Parse(textBox1.Text);
             //lastLeaf = Tree.Search(lastLeaf, value);
             //if (lastLeaf.Value == value)
@@ -62,9 +60,9 @@ namespace FingerSearchTree
                     swinsert.Start();
                     lastLeaf = Tree.Insert(lastLeaf, value);
                     swinsert.Stop();
-                }
 
-                elements.Add(value);
+                    elements.Add(value);
+                }
                 value = rnd.Next();
             }
             insertTime = swinsert.ElapsedMilliseconds;

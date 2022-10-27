@@ -4,6 +4,7 @@ using GroupAndComponent;
 using Blocks;
 using System.Linq;
 using FingerSearchTree;
+using System.Xml.Linq;
 
 namespace Nodes
 {
@@ -181,14 +182,6 @@ namespace Nodes
                 left.Right = right;
             if (right != null)
                 right.Left = left;
-
-            if (Blocks2.Count == 0)
-            {
-                Father.Remove(this);
-                if(Group.Nodes.Remove(this) == false)
-                { }
-                Group = null;
-            }
         }
     }
 }

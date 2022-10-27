@@ -83,7 +83,7 @@ namespace Blocks
 
             // Make sure the left/right pointers are set correctly.
             Node left = null;
-            if (position != 0)
+            if (position > 0)
             {
                 left = Nodes[position - 1];
             }
@@ -114,10 +114,45 @@ namespace Blocks
                     }
                 }
             }
-            Node right = left.Right;
+            Node right = null;
             if (left != null)
             {
+                right = left.Right;
                 left.Right = middle;
+            }
+            else
+            {
+                if (position < Nodes.Count - 1)
+                {
+                    right = Nodes[position + 1];
+                }
+                else
+                {
+                    Block1 rightBlock1 = Right;
+                    if (rightBlock1 != null)
+                    {
+                        right = rightBlock1.Nodes[0];
+                    }
+                    else
+                    {
+                        Block2 rightBlock2 = Father.Right;
+                        if (rightBlock2 != null)
+                        {
+                            rightBlock1 = rightBlock2.Blocks1[0];
+                            right = rightBlock1.Nodes[0];
+                        }
+                        else
+                        {
+                            Node rightNode = Father.Node.Right;
+                            if (rightNode != null)
+                            {
+                                rightBlock2 = rightNode.Blocks2[0];
+                                rightBlock1 = rightBlock2.Blocks1[0];
+                                right = rightBlock1.Nodes[0];
+                            }
+                        }
+                    }
+                }
             }
             middle.Left = left;
 
