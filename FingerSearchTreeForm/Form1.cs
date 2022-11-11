@@ -1,6 +1,5 @@
 using FingerSearchTree;
 using System.Diagnostics;
-using System.Xml.Linq;
 
 namespace FingerSearchTreeForm
 {
@@ -174,21 +173,21 @@ namespace FingerSearchTreeForm
             {
                 int index = rnd.Next(elements.Count);
                 value = elements[index];
-                elements.RemoveAt(index);
                 searchTimmer.Start();
                 lastLeaf = Tree.Search(lastLeaf, value);
                 searchTimmer.Stop();
-                //if (lastLeaf.Value == value)
-                //{
+                if (lastLeaf.Value == value)
+                {
                     deleteTimmer.Start();
                     lastLeaf = Tree.Delete(lastLeaf);
                     deleteTimmer.Stop();
-                //}
-                //else
-                //{
-                //    TestFind(value);
-                //    Test();
-                //}
+                    elements.RemoveAt(index);
+                }
+                else
+                {
+                    TestFind(value);
+                    Test();
+                }
                 if (test_.Checked && only_.Checked == false && Test() == false)
                 {
                     inputOutput_.Text = "Something went wrong: Either a left/right pointer or there are too few/too many elements";

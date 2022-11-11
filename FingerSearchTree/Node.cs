@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FingerSearchTree
+﻿namespace FingerSearchTree
 {
     public class Node
     {
@@ -17,63 +10,75 @@ namespace FingerSearchTree
 
         public Node? FatherNode { get => Father?.Father.Node; }
 
-        public List<Block2> Blocks2 { get; }
+        public Block2 First { get; set; }
+
+        public Block2 Last { get; set; }
+
+        public int Blocks2Count { get; set; }
 
         private Group group_;
-
         public Group Group
         {
             get
             {
-                if (group_.Valid == false)
+                if (group_.Valid && group_.Component.Valid)
+                    return group_;
+
+                if (group_.Valid && group_.Component.Valid == false)
+                {
+                    group_.Component = new Component(this);
+                    return group_;
+                }
+
+                if (group_.Valid == false && group_.Component.Valid == false)
+                {
+                    group_.Remove(this);
+                    group_ = new Group(this);
+                    return group_;
+                }
+
+                if (group_.Valid == false && group_.Component.Valid)
+                {
+                    group_.Remove(this);
                     group_ = new Group(this, group_.Component);
+                    return group_;
+                }
+
                 return group_;
             }
             set => group_ = value;
         }
 
-        public Component Component
-        {
-            get => Group.Component;
-        }
+        public Component Component { get => Group.Component; }
 
         public int Level { get; internal set; }
 
-        public int Degree { get => Blocks2.Sum(bl => bl.Degree); }
+        public int Degree { get; set; } = 0;
 
-        public virtual int Min
-        {
-            get => Blocks2.Count == 0 ? int.MaxValue : Blocks2.First().Min;
-        }
+        public virtual int Min { get => First == null ? int.MaxValue : First.Min; }
 
-        public virtual int Max
-        {
-            get => Blocks2.Count == 0 ? int.MinValue : Blocks2.Last().Max;
-        }
+        public virtual int Max { get => Last == null ? int.MinValue : Last.Max; }
 
         public bool ContainsAtLeastTwoBlock2Pairs
         {
             get
             {
-                switch (Blocks2.Count)
+                switch (Blocks2Count)
                 {
                     case 0: return false;
                     case 1: return false;
-                    case 2: return Blocks2[0].Mate != Blocks2[1] && Blocks2[0] != Blocks2[1].Mate;
+                    case 2: return First.Mate != Last && First != Last.Mate;
                     case 3:
-                        if (Blocks2[1].Pending) return true;
-                        return Blocks2[0].Pending == false && Blocks2[2].Pending == false;
-                    case 4: return Blocks2[0].Pending && Blocks2[1].Pending == false && Blocks2[2].Pending == false && Blocks2[3].Pending;
+                        if (First.Right.Pending) return true;
+                        return First.Pending == false && Last.Pending == false;
+                    case 4: return First.Pending && First.Right.Pending == false && Last.Left.Pending == false && Last.Pending;
                     default: return true;
                 }
             }
         }
 
-        public bool Fused { get; set; } = false;
-
         public Node(int level)
         {
-            Blocks2 = new List<Block2>();
             group_ = new Group(this);
             Level = level;
         }
@@ -88,58 +93,40 @@ namespace FingerSearchTree
         internal Node FindChildContaining(int value)
         {
             if (value > Max)
-                return Blocks2.Last().FindChildContaining(value);
+                return Last.FindChildContaining(value);
 
-            int minpos = 0;
-            int maxpos = Blocks2.Count - 1;
-            int midpos = (maxpos + minpos) / 2;
-            while (Blocks2[midpos].ContainsValue(value) == false && maxpos > minpos)
+            Block2 block2 = First;
+            while (block2?.Node == this)
             {
-                if (Blocks2[midpos].Min > value)
-                    maxpos = midpos - 1;
-                else
-                    minpos = midpos + 1;
-                midpos = (maxpos + minpos) / 2;
+                if (block2.ContainsValue(value))
+                    return block2.FindChildContaining(value);
+
+                if (block2.Min > value)
+                    return block2.Left.FindChildContaining(value);
+                block2 = block2.Right;
             }
-
-            if (Blocks2[midpos].ContainsValue(value) || Blocks2[midpos].Max < value)
-                return Blocks2[midpos].FindChildContaining(value);
-            else
-            {
-                Node first = Blocks2[midpos].Blocks1.First().Nodes.First();
-                if (first.Left != null)
-                    return first.Left;
-                else
-                    return first;
-            }    
+            return Last.FindChildContaining(value);
         }
 
-        internal void Add(Block2 left, Block2 middle)
+        internal void Add(Block2 leftP, Block2 middle, Block2 rightP)
         {
-            int position = Blocks2.IndexOf(left);
-            Blocks2.Insert(position + 1, middle);
             middle.Node = this;
 
-            Block2? right = left.Right;
-            left.Right = middle;
-            middle.Left = left;
-            middle.Right = right;
-            if (right != null)
-                right.Left = middle;
-        }
-
-        internal void Add(int position, Block2 middle)
-        {
-            Blocks2.Insert(position, middle);
-            middle.Node = this;
+            if (leftP == Last)
+                Last = middle;
+            if (rightP == First)
+                First = middle;
 
             Block2? left = null;
             Block2? right = null;
 
-            if (position > 0)
-                left = Blocks2[position - 1];
-            if (position < Blocks2.Count - 1)
-                right = Blocks2[position + 1];
+            if (leftP != null)
+                left = leftP;
+
+            if (left != null)
+                right = left.Right;
+            else if (rightP != null)
+                right = rightP; 
 
             if (left != null)
                 left.Right = middle;
@@ -147,11 +134,25 @@ namespace FingerSearchTree
             middle.Right = right;
             if (right != null)
                 right.Left = middle;
+
+            Degree += middle.Degree;
+            Group.Degree += middle.Degree;
+            Blocks2Count += 1;
         }
 
         internal void Remove(Block2 middle)
         {
-            Blocks2.Remove(middle);
+            if (middle == Last)
+                if (middle.Left?.Node == this)
+                    Last = middle.Left;
+                else
+                    Last = null;
+
+            if (middle == First)
+                if (middle.Right?.Node == this)
+                    First = middle.Right;
+                else
+                    First = null;
 
             Block2? left = middle.Left;
             Block2? right = middle.Right;
@@ -161,17 +162,9 @@ namespace FingerSearchTree
             if (right != null)
                 right.Left = left;
 
-            if(Blocks2.Count == 0)
-            {
-                if (Fused)
-                {
-                    Fused = false;
-                }
-                else 
-                {
-                    Tree.DeleteNode(this);
-                }
-            }
+            Degree -= middle.Degree;
+            Group.Degree -= middle.Degree;
+            Blocks2Count -= 1;
         }
 
         internal Node Split()
@@ -184,47 +177,39 @@ namespace FingerSearchTree
                 Block2 block2 = new Block2(root);
                 Block1 block1 = new Block1(block2);
 
-                block1.Nodes.Add(this);
-                block2.Blocks1.Add(block1);
-                root.Blocks2.Add(block2);
-                Father = block1;
-            } 
+                block1.Add(null, this, null);
+                block2.Add(null, block1, null);
+                root.Add(null, block2, null);
+            }
 
-            Block2 lastBlock2 = Blocks2.Last();
-            if(lastBlock2.Pending)
+            Block2 lastBlock2 = Last;
+            if (lastBlock2.Pending)
             {
                 Remove(lastBlock2);
-                newNode.Add(0,lastBlock2);
-                lastBlock2 = Blocks2.Last();
+                newNode.Add(newNode.First?.Left, lastBlock2, newNode.First);
+                lastBlock2 = Last;
             }
 
             Remove(lastBlock2);
-            newNode.Add(0, lastBlock2);
-            lastBlock2 = Blocks2.Last();
+            newNode.Add(newNode.First?.Left, lastBlock2, newNode.First);
+            lastBlock2 = Last;
 
-            if(lastBlock2.Pending == false && lastBlock2.Mate != null && lastBlock2.Mate == newNode.Blocks2.First() && lastBlock2.Mate.Mate == lastBlock2)
+            if (lastBlock2.Pending == false && lastBlock2.Mate != null && lastBlock2.Mate == newNode.First && lastBlock2.Mate.Mate == lastBlock2)
             {
                 Remove(lastBlock2);
-                newNode.Add(0, lastBlock2);
-                lastBlock2 = Blocks2.Last();
+                newNode.Add(newNode.First?.Left, lastBlock2, newNode.First);
+                lastBlock2 = Last;
             }
 
-            if (lastBlock2.Pending && lastBlock2.Mate != null && lastBlock2.Mate == newNode.Blocks2.First())
+            if (lastBlock2.Pending && lastBlock2.Mate != null && lastBlock2.Mate == newNode.First)
             {
                 Remove(lastBlock2);
-                newNode.Add(0, lastBlock2);
+                newNode.Add(newNode.First?.Left, lastBlock2, newNode.First);
             }
 
-            AddToGroup(newNode);
+            Group.Add(this,newNode);
 
             return newNode;
-        }
-
-        private void AddToGroup(Node newNode)
-        {
-            newNode.Group = Group;
-            int position = Group.Nodes.IndexOf(this);
-            Group.Nodes.Insert(position + 1, newNode);
         }
     }
 }

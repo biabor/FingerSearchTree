@@ -1,26 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FingerSearchTree
+﻿namespace FingerSearchTree
 {
     public static class Bounds
     {
+        private static Dictionary<int, long> a = new Dictionary<int, long>();
+        private static Dictionary<int, long> b = new Dictionary<int, long>();
+        private static Dictionary<int, long> bp = new Dictionary<int, long>();
+
         public static long BiP(int level)
         {
-            return (long)Math.Pow(2, 2 * level + 3) - 2;
+            if (a.TryGetValue(level, out long result))
+                return result;
+            result = 128 * (long)Math.Pow(4, level);
+            a.Add(level, result);
+            return result;
+            //return (long)Math.Pow(2, Math.Pow(2, 2 * level + 3) - 2);
         }
 
         public static long Fi(int level)
         {
-            return (long)Math.Pow(2, 2* level + 1);
+            if (b.TryGetValue(level, out long result))
+                return result;
+            result = 4 * (long)Math.Pow(2, level);
+            b.Add(level, result);
+            return result;
+            //return (long)Math.Pow(2, Math.Pow(2, 2 * level + 1));
         }
 
         public static long Ai(int level)
         {
-            return (long)Math.Pow(2, 2 * level);
+            if (bp.TryGetValue(level, out long result))
+                return result;
+            result = (long)Math.Pow(2, level);
+            bp.Add(level, result);
+            return result;
+            //return (long)Math.Pow(2, Math.Pow(2, 2 * level));
         }
     }
 }

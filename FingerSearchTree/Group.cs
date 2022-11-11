@@ -2,58 +2,43 @@
 {
     public class Group
     {
-        public Group? Left
-        {
-            get => Nodes.First().Left?.Group;
-        }
+        public Group? Left { get => First.Left?.Group; }
 
-        public Group? Right
-        {
-            get => Nodes.Last().Right?.Group;
-        }
+        public Group? Right { get => Last.Right?.Group; }
 
-        public List<Node> Nodes { get; }
+        public Node First { get; set; }
 
-        public Block2? Block2
-        {
-            get => Nodes.Count == 0 ? null : Nodes.First().Father?.Father;
-        }
+        public Node Last { get; set; }
 
-        public Component Component { get; private set; }
+        public Block2? Block2 { get => First?.Father?.Father; }
 
+        public Component Component { get; set; }
 
-        public bool IsSplitGroup
-        {
-            get => Degree > 4 * Bounds.Fi(Level);
-        }
+        public bool IsSplitGroup { get => Degree > 4 * Bounds.Fi(Level); }
 
-        public int Degree
-        {
-            get => Nodes.Sum(node => node.Degree);
-        }
+        public int Degree { get; set; }
 
         public bool hasOnlyOneBlock1
         {
             get
             {
-                if (Nodes.Count != 1)
+                if (First == null || First != Last)
                     return false;
-                if (Nodes.First().Blocks2.Count != 1)
+                if (First.Blocks2Count != 1)
                     return false;
-                return Nodes.First().Blocks2.First().Blocks1.Count == 1;
+                return First.First.First == First.First.Last;
             }
         }
 
-        public int Level
-        {
-            get => Nodes.Count == 0 ? -1 : Nodes.First().Level;
-        }
+        public int Level { get => First == null ? -1 : First.Level; }
 
         public bool Valid { get; internal set; }
 
         public Group(Node node)
         {
-            Nodes = new List<Node> { node };
+            First = node;
+            Last = node;
+            Degree = node.Degree;
             Component = new Component(node);
             Valid = true;
         }
@@ -70,8 +55,8 @@
             Valid = false;
             if (Block2 != null)
                 Component = Block2.Node.Component;
-            else
-                Component = new Component(Nodes.First());
+            else if (First != null)
+                Component = new Component(First);
         }
 
         internal void Fuse(Group g)
@@ -79,21 +64,16 @@
             bool left = Left == g;
             if (hasOnlyOneBlock1)
             {
-                Block2 to = g.Nodes.First().Blocks2.First();
-                Block2 from = Nodes.First().Blocks2.First();
-                Block1 what = from.Blocks1.First();
+                Block2 to = g.First.First;
+                Block1 what = First.First.First;
 
-                Node fatherNode = from.Node;
-                fatherNode.Fused = true;
-                from.Remove(what);
-                fatherNode.Fused = false;
-
+                Node fatherNode = First;
                 Tree.DeleteNode(fatherNode);
 
                 if (left)
-                    to.Add(to.Blocks1.Count, what);
+                    to.Add(to.Last, what, to.Last?.Right);
                 else
-                    to.Add(0, what);
+                    to.Add(to.First?.Left, what, to.First);
 
                 if (to.Pending && to.IsFull)
                 {
@@ -109,17 +89,12 @@
                 return;
             }
 
-            if (Nodes.First().Blocks2.Count == 1)
+            if (First.Blocks2Count == 1)
             {
-                Node from = Nodes.First();
-                Node to = g.Nodes.First();
-                Block2 what = from.Blocks2.First();
+                Node to = g.First;
+                Block2 what = First.First;
 
-                from.Fused = true;
-                from.Remove(what);
-                from.Fused = false;
-
-                Tree.DeleteNode(from);
+                Tree.DeleteNode(First);
 
                 if (what.Mate != null && what.Pending == false)
                     what.Mate.Mate = null;
@@ -130,12 +105,12 @@
                 Block2? whatNeighbour;
                 if (left)
                 {
-                    to.Add(to.Blocks2.Count, what);
+                    to.Add(to.Last, what, to.Last?.Right);
                     whatNeighbour = what.Left;
                 }
                 else
                 {
-                    to.Add(0, what);
+                    to.Add(to.First?.Left, what, to.First);
                     whatNeighbour = what.Right;
                 }
 
@@ -154,11 +129,9 @@
                 }
                 return;
             }
-            else if (g.Nodes.First().Blocks2.Count == 1)
-            {
+
+            if (First.Blocks2Count == 1)
                 g.Fuse(this);
-                return;
-            }
         }
 
         internal void Share(Group g)
@@ -167,47 +140,43 @@
             {
                 if (Left == g)
                 {
-                    Node from = g.Nodes.Last();
-                    Node to = Nodes.First();
-                    Block2 removed = to.Blocks2.First();
-                    Block2 transferred = from.Blocks2.Last();
-                    Block1 added = removed.Blocks1.First();
+                    Node from = g.Last;
+                    Node to = First;
+                    Block2 removed = to.First;
+                    Block2 transferred = from.Last;
+                    Block1 added = removed.First;
 
-                    to.Fused = true;
                     removed.Remove(added);
-                    to.Fused = false;
 
                     from.Remove(transferred);
-                    to.Add(0, transferred);
+                    to.Add(to.First?.Left, transferred, to.First);
 
-                    if (transferred.Mate != null && transferred.Pending == false)
+                    if (transferred.Mate != null && transferred.Mate.Mate == transferred)
                         transferred.Mate.Mate = null;
                     transferred.Mate = null;
                     transferred.Pending = false;
 
-                    transferred.Add(transferred.Blocks1.Count, added);
+                    transferred.Add(transferred.Last, added, transferred.Last?.Right);
                 }
                 else
                 {
-                    Node from = g.Nodes.First();
-                    Node to = Nodes.Last();
-                    Block2 removed = to.Blocks2.Last();
-                    Block2 transferred = from.Blocks2.First();
-                    Block1 added = removed.Blocks1.Last();
+                    Node from = g.First;
+                    Node to = Last;
+                    Block2 removed = to.Last;
+                    Block2 transferred = from.First;
+                    Block1 added = removed.Last;
 
-                    to.Fused = true;
                     removed.Remove(added);
-                    to.Fused = false;
 
                     from.Remove(transferred);
-                    to.Add(to.Blocks2.Count, transferred);
+                    to.Add(to.Last, transferred, to.Last?.Right);
 
-                    if (transferred.Mate != null && transferred.Pending == false)
+                    if (transferred.Mate != null && transferred.Mate.Mate == transferred)
                         transferred.Mate.Mate = null;
                     transferred.Mate = null;
                     transferred.Pending = false;
 
-                    transferred.Add(0, added);
+                    transferred.Add(transferred.First?.Left, added, transferred.First);
                 }
             }
             else
@@ -222,12 +191,37 @@
             if (IsSplitGroup || g.IsSplitGroup)
                 return false;
 
-            if (Nodes.Count != 1 && g.Nodes.Count != 1)
+            if ((First == null || First != Last) && (g.First == null || g.First != g.Last))
                 return false;
 
             if (Block2 != g.Block2) return false;
 
-            return (Nodes.First().Blocks2.Count == 1 && g.Nodes.First().Blocks2.Count <= 3) || (g.Nodes.First().Blocks2.Count == 1 && Nodes.First().Blocks2.Count <= 3);
+            return (First.Blocks2Count == 1 && g.First.Blocks2Count <= 3) || (g.First.Blocks2Count == 1 && First.Blocks2Count <= 3);
+        }
+
+        internal void Add(Node left, Node middle)
+        {
+            if (left == Last)
+                Last = middle;
+
+            middle.Group = this;
+            Degree += middle.Degree;
+        }
+
+        internal void Remove(Node node)
+        {
+            if (Last != First)
+            {
+                if (node == Last)
+                    Last = node.Left;
+                else if (node == First)
+                    First = node.Right;
+            }
+            else
+            {
+                Last = null;
+                First = null;
+            }
         }
     }
 }

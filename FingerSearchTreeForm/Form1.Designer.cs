@@ -29,16 +29,16 @@
         private void InitializeComponent()
         {
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.search_ = new System.Windows.Forms.Button();
-            this.add_ = new System.Windows.Forms.Button();
             this.delete_ = new System.Windows.Forms.Button();
+            this.add_ = new System.Windows.Forms.Button();
+            this.search_ = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.test_ = new System.Windows.Forms.CheckBox();
+            this.only_ = new System.Windows.Forms.CheckBox();
             this.random_ = new System.Windows.Forms.Button();
             this.remove_ = new System.Windows.Forms.Button();
             this.insert_ = new System.Windows.Forms.Button();
             this.inputOutput_ = new System.Windows.Forms.TextBox();
-            this.test_ = new System.Windows.Forms.CheckBox();
-            this.only_ = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
@@ -55,15 +55,15 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Single Operations";
             // 
-            // search_
+            // delete_
             // 
-            this.search_.Location = new System.Drawing.Point(8, 19);
-            this.search_.Name = "search_";
-            this.search_.Size = new System.Drawing.Size(75, 23);
-            this.search_.TabIndex = 0;
-            this.search_.Text = "Search";
-            this.search_.UseVisualStyleBackColor = true;
-            this.search_.Click += new System.EventHandler(this.search__Click);
+            this.delete_.Location = new System.Drawing.Point(288, 19);
+            this.delete_.Name = "delete_";
+            this.delete_.Size = new System.Drawing.Size(75, 23);
+            this.delete_.TabIndex = 2;
+            this.delete_.Text = "Delete";
+            this.delete_.UseVisualStyleBackColor = true;
+            this.delete_.Click += new System.EventHandler(this.delete__Click);
             // 
             // add_
             // 
@@ -75,15 +75,15 @@
             this.add_.UseVisualStyleBackColor = true;
             this.add_.Click += new System.EventHandler(this.add__Click);
             // 
-            // delete_
+            // search_
             // 
-            this.delete_.Location = new System.Drawing.Point(288, 19);
-            this.delete_.Name = "delete_";
-            this.delete_.Size = new System.Drawing.Size(75, 23);
-            this.delete_.TabIndex = 2;
-            this.delete_.Text = "Delete";
-            this.delete_.UseVisualStyleBackColor = true;
-            this.delete_.Click += new System.EventHandler(this.delete__Click);
+            this.search_.Location = new System.Drawing.Point(8, 19);
+            this.search_.Name = "search_";
+            this.search_.Size = new System.Drawing.Size(75, 23);
+            this.search_.TabIndex = 0;
+            this.search_.Text = "Search";
+            this.search_.UseVisualStyleBackColor = true;
+            this.search_.Click += new System.EventHandler(this.search__Click);
             // 
             // groupBox2
             // 
@@ -98,6 +98,28 @@
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Testing Operations";
+            // 
+            // test_
+            // 
+            this.test_.AutoSize = true;
+            this.test_.Checked = true;
+            this.test_.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.test_.Location = new System.Drawing.Point(8, 48);
+            this.test_.Name = "test_";
+            this.test_.Size = new System.Drawing.Size(79, 19);
+            this.test_.TabIndex = 3;
+            this.test_.Text = "Test Order";
+            this.test_.UseVisualStyleBackColor = true;
+            // 
+            // only_
+            // 
+            this.only_.AutoSize = true;
+            this.only_.Location = new System.Drawing.Point(144, 47);
+            this.only_.Name = "only_";
+            this.only_.Size = new System.Drawing.Size(132, 19);
+            this.only_.TabIndex = 4;
+            this.only_.Text = "Only When Finished";
+            this.only_.UseVisualStyleBackColor = true;
             // 
             // random_
             // 
@@ -135,26 +157,6 @@
             this.inputOutput_.Name = "inputOutput_";
             this.inputOutput_.Size = new System.Drawing.Size(408, 23);
             this.inputOutput_.TabIndex = 2;
-            // 
-            // test_
-            // 
-            this.test_.AutoSize = true;
-            this.test_.Location = new System.Drawing.Point(8, 48);
-            this.test_.Name = "test_";
-            this.test_.Size = new System.Drawing.Size(79, 19);
-            this.test_.TabIndex = 3;
-            this.test_.Text = "Test Order";
-            this.test_.UseVisualStyleBackColor = true;
-            // 
-            // only_
-            // 
-            this.only_.AutoSize = true;
-            this.only_.Location = new System.Drawing.Point(144, 47);
-            this.only_.Name = "only_";
-            this.only_.Size = new System.Drawing.Size(132, 19);
-            this.only_.TabIndex = 4;
-            this.only_.Text = "Only When Finished";
-            this.only_.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 

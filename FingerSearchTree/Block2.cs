@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FingerSearchTree
+﻿namespace FingerSearchTree
 {
     public class Block2
     {
@@ -16,37 +10,23 @@ namespace FingerSearchTree
 
         public Node Node { get; set; }
 
-        public List<Block1> Blocks1 { get; }
+        public Block1 First { get; set; }
 
-        public int Degree
-        {
-            get => Blocks1.Sum(bl => bl.Degree);
-        }
+        public Block1 Last { get; set; }
 
-        public bool IsFull
-        {
-            get =>
-                Node.Group.IsSplitGroup ?
-                Degree >= Bounds.BiP(Node.Level) :
-                Degree >= Bounds.Fi(Node.Level);
-        }
+        public int Degree { get; set; } = 0;
+
+        public bool IsFull { get => Node.Group.IsSplitGroup ? Degree >= Bounds.BiP(Node.Level) : Degree >= Bounds.Fi(Node.Level); }
 
         public bool Pending { get; set; }
 
-        public int Min
-        {
-            get => Blocks1.Count == 0 ? int.MaxValue : Blocks1.First().Min;
-        }
+        public int Min { get => First == null ? int.MaxValue : First.Min; }
 
-        public int Max
-        {
-            get => Blocks1.Count == 0 ? int.MinValue : Blocks1.Last().Max;
-        }
+        public int Max { get => Last == null ? int.MinValue : Last.Max; }
 
         public Block2(Node node)
         {
             Node = node;
-            Blocks1 = new List<Block1>();
         }
 
         internal bool ContainsValue(int value)
@@ -57,58 +37,42 @@ namespace FingerSearchTree
         internal Node FindChildContaining(int value)
         {
             if (value > Max)
-                return Blocks1.Last().FindChildContaining(value);
+                return Last.FindChildContaining(value);
 
-            int minpos = 0;
-            int maxpos = Blocks1.Count - 1;
-            int midpos = (maxpos + minpos) / 2;
-            while (Blocks1[midpos].ContainsValue(value) == false && maxpos > minpos)
+
+            Block1 block1 = First;
+            while (block1?.Father == this)
             {
-                if (Blocks1[midpos].Min > value)
-                    maxpos = midpos - 1;
-                else
-                    minpos = midpos + 1;
-                midpos = (maxpos + minpos) / 2;
+                if (block1.ContainsValue(value))
+                    return block1.FindChildContaining(value);
+
+                if (block1.Min > value)
+                    return block1.Left.FindChildContaining(value);
+                block1 = block1.Right;
             }
 
-            if (Blocks1[midpos].ContainsValue(value) || Blocks1[midpos].Max < value)
-                return Blocks1[midpos].FindChildContaining(value);
-            else
-            {
-                Node first = Blocks1[midpos].Nodes.First();
-                if (first.Left != null)
-                    return first.Left;
-                else
-                    return first;
-            }
+            return Last.FindChildContaining(value);
         }
 
-        internal void Add(Block1 left, Block1 middle)
+        internal void Add(Block1 leftP, Block1 middle, Block1 rightP)
         {
-            int position = Blocks1.IndexOf(left);
-            Blocks1.Insert(position + 1, middle);
             middle.Father = this;
 
-            Block1? right = left.Right;
-            left.Right = middle;
-            middle.Left = left;
-            middle.Right = right;
-            if (right != null)
-                right.Left = middle;
-        }
-
-        internal void Add(int position, Block1 middle)
-        {
-            Blocks1.Insert(position, middle);
-            middle.Father = this;
+            if (leftP == Last)
+                Last = middle;
+            if (rightP == First)
+                First = middle;
 
             Block1? left = null;
             Block1? right = null;
 
-            if (position > 0)
-                left = Blocks1[position - 1];
-            if(position < Blocks1.Count - 1)
-                right = Blocks1[position + 1];
+            if (leftP != null)
+                left = leftP;
+
+            if (left != null)
+                right = left.Right;
+            else if (rightP != null)
+                right = rightP;
 
             if (left != null)
                 left.Right = middle;
@@ -116,11 +80,25 @@ namespace FingerSearchTree
             middle.Right = right;
             if (right != null)
                 right.Left = middle;
+
+            Degree += middle.Degree;
+            Node.Degree += middle.Degree;
+            Node.Group.Degree += middle.Degree;
         }
 
         internal void Remove(Block1 middle)
         {
-            Blocks1.Remove(middle);
+            if (middle == Last)
+                if (middle.Left?.Father == this)
+                    Last = middle.Left;
+                else
+                    Last = null;
+
+            if (middle == First)
+                if (middle.Right?.Father == this)
+                    First = middle.Right;
+                else
+                    First = null;
 
             Block1? left = middle.Left;
             Block1? right = middle.Right;
@@ -130,7 +108,11 @@ namespace FingerSearchTree
             if (right != null)
                 right.Left = left;
 
-            if(Blocks1.Count == 0)
+            Degree -= middle.Degree;
+            Node.Degree -= middle.Degree;
+            Node.Group.Degree -= middle.Degree;
+
+            if (First == null || Last == null)
             {
                 Node.Remove(this);
                 if (Pending == false && Mate != null)
@@ -140,28 +122,29 @@ namespace FingerSearchTree
 
         internal void TransferToMate()
         {
-            if(Mate.Blocks1.Count == 0)
+            if (Mate.Degree == 0)
             {
-                Mate.Blocks1.Add(new Block1(Mate));
+                Mate.Add(null, new Block1(Mate), null);
             }
-            if(Mate == Right)
+
+            if (Mate == Right)
             {
-                Block1 from = Blocks1.Last();
-                Block1 to = Mate.Blocks1.First();
-                Node transferred = from.Nodes.Last();
+                Block1 from = Last;
+                Block1 to = Mate.First;
+                Node transferred = from.Last;
 
                 bool wasFromFull = from.IsFull;
                 bool wasToFull = to.IsFull;
 
                 from.Remove(transferred);
 
-                if(wasFromFull)
+                if (wasFromFull)
                 {
                     if (from.Mate != null)
                     {
                         from.Mate.TransferToMate();
                     }
-                    else if(from.Left != null)
+                    else if (from.Left != null)
                     {
                         if (from.Left.Mate == null)
                         {
@@ -171,29 +154,29 @@ namespace FingerSearchTree
                         }
                         else
                         {
-                            Node shared = from.Left.Nodes.Last();
+                            Node shared = from.Left.Last;
                             bool wasLeftFull = from.Left.IsFull;
                             from.Left.Remove(shared);
+                            from.Add(from.First?.Left, shared, from.First);
                             if (wasLeftFull)
                                 from.Left.Mate.TransferToMate();
-                            from.Add(0, shared);
                         }
                     }
                 }
 
-                to.Add(0, transferred);
+                to.Add(to.First?.Left, transferred, to.First);
 
-                if(wasToFull)
+                if (wasToFull)
                 {
-                    if(to.Mate == null)
+                    if (to.Mate == null)
                     {
                         to.Mate = new Block1(to.Father) { Mate = to };
-                        Mate.Add(to, to.Mate);
+                        Mate.Add(to, to.Mate, to.Right);
                     }
                     to.TransferToMate();
                 }
 
-                if(to.IsFull && to.Mate != null && to.Mate.IsFull)
+                if (to.IsFull && to.Mate != null && to.Mate.IsFull)
                 {
                     to.Mate.Mate = null;
                     to.Mate = null;
@@ -201,9 +184,9 @@ namespace FingerSearchTree
             }
             else
             {
-                Block1 from = Blocks1.First();
-                Block1 to = Mate.Blocks1.Last();
-                Node transferred = from.Nodes.First();
+                Block1 from = First;
+                Block1 to = Mate.Last;
+                Node transferred = from.First;
 
                 bool wasFromFull = from.IsFull;
                 bool wasToFull = to.IsFull;
@@ -212,13 +195,13 @@ namespace FingerSearchTree
 
                 if (wasFromFull)
                 {
-                    if(from.Mate != null)
+                    if (from.Mate != null)
                     {
                         from.Mate.TransferToMate();
                     }
-                    else if(from.Right != null)
+                    else if (from.Right != null)
                     {
-                        if(from.Right.Mate == null)
+                        if (from.Right.Mate == null)
                         {
                             from.Mate = from.Right;
                             from.Right.Mate = from;
@@ -226,24 +209,24 @@ namespace FingerSearchTree
                         }
                         else
                         {
-                            Node shared = from.Right.Nodes.First();
+                            Node shared = from.Right.First;
                             bool wasRightFull = from.Right.IsFull;
                             from.Right.Remove(shared);
+                            from.Add(from.Last, shared, from.Last?.Right);
                             if (wasRightFull)
                                 from.Right.Mate.TransferToMate();
-                            from.Add(from.Nodes.Count, shared);
                         }
                     }
                 }
 
-                to.Add(to.Nodes.Count, transferred);
+                to.Add(to.Last, transferred, to.Last?.Right);
 
                 if (wasToFull)
                 {
                     if (to.Mate == null)
                     {
                         to.Mate = new Block1(to.Father) { Mate = to };
-                        Mate.Add(to, to.Mate);
+                        Mate.Add(to, to.Mate, to.Right);
                     }
                     to.TransferToMate();
                 }
@@ -258,56 +241,40 @@ namespace FingerSearchTree
 
         internal void Transfer(Block2 to)
         {
-            if(Right == to)
+            if (Right == to)
             {
-                Block1 transferred = Blocks1.Last();
+                Block1 transferred = Last;
                 Remove(transferred);
-                to.Add(0, transferred); 
-
-                if(transferred.Mate != null)
-                {
-                    transferred = transferred.Mate;
-                    Remove(transferred);
-                    to.Add(0, transferred);
-                }
-            }
-            else
-            {
-                Block1 transferred = Blocks1.First();
-                Remove(transferred);
-                to.Add(to.Blocks1.Count, transferred);
+                to.Add(to.First?.Left, transferred, to.First);
 
                 if (transferred.Mate != null)
                 {
                     transferred = transferred.Mate;
                     Remove(transferred);
-                    to.Add(to.Blocks1.Count, transferred);
+                    to.Add(to.First?.Left, transferred, to.First);
                 }
             }
-
-            if (to.Pending && to.IsFull)
+            else
             {
-                to.Pending = false;
-                to.Mate = null;
+                Block1 transferred = First;
+                Remove(transferred);
+                to.Add(to.Last, transferred, to.Last?.Right);
+
+                if (transferred.Mate != null)
+                {
+                    transferred = transferred.Mate;
+                    Remove(transferred);
+                    to.Add(to.Last, transferred, to.Last?.Right);
+                }
             }
         }
 
         internal bool IsBreakPossible()
         {
-            if(Mate == Right)
-            {
-                Block1 block = Blocks1.Last();
-                Node node = block.Nodes.Last();
-
-                return node.Right == null ||  node.Group != node.Right.Group;
-            }
+            if (Mate == Right)
+                return Last.Last.Group != Last.Last.Right.Group;
             else
-            {
-                Block1 block = Blocks1.First();
-                Node node = block.Nodes.First();
-
-                return node.Left == null || node.Group != node.Left.Group;
-            }
+                return First.First.Group != First.First.Left.Group;
         }
     }
 }

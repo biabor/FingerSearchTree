@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FingerSearchTree
+﻿namespace FingerSearchTree
 {
     public class Block1
     {
@@ -17,26 +10,21 @@ namespace FingerSearchTree
 
         public Block2 Father { get; set; }
 
-        public List<Node> Nodes { get; }
-
-        public int Degree { get => Nodes.Count; }
+        public int Degree { get; set; } = 0;
 
         public bool IsFull { get => Bounds.Ai(Father.Node.Level) <= Degree; }
 
-        public int Min
-        {
-            get => Nodes.Count == 0 ? int.MaxValue : Nodes.First().Min;
-        }
+        public int Min { get => First == null ? int.MaxValue : First.Min; }
 
-        public int Max
-        {
-            get => Nodes.Count == 0 ? int.MinValue : Nodes.Last().Max;
-        }
+        public int Max { get => Last == null ? int.MinValue : Last.Max; }
+
+        public Node? First { get; set; }
+
+        public Node? Last { get; set; }
 
         public Block1(Block2 father)
         {
             Father = father;
-            Nodes = new List<Node>();
         }
 
         internal bool ContainsValue(int value)
@@ -47,136 +35,81 @@ namespace FingerSearchTree
         internal Node FindChildContaining(int value)
         {
             if (value > Max)
-                return Nodes.Last();
+                return Last;
 
-            int minpos = 0;
-            int maxpos = Nodes.Count - 1;
-            int midpos = (maxpos + minpos) / 2;
-            while (Nodes[midpos].ContainsValue(value) == false && maxpos > minpos)
+            Node node = First;
+            while (node?.Father == this)
             {
-                if (Nodes[midpos].Min > value)
-                    maxpos = midpos - 1;
-                else
-                    minpos = midpos + 1;
-                midpos = (maxpos + minpos) / 2;
+                if (node.ContainsValue(value))
+                    return node;
+
+                if (node.Min > value)
+                    return node.Left;
+                node = node.Right;
             }
 
-            if (Nodes[midpos].ContainsValue(value) || Nodes[midpos].Max < value)
-                return Nodes[midpos];
-            else
-            {
-                Node first = Nodes[midpos];
-                if (first.Left != null)
-                    return first.Left;
-                else
-                    return first;
-            }
+            return Last;
         }
 
-        internal void Add(Node left, Node middle)
+        internal void Add(Node leftP, Node middle, Node rightP)
         {
-            int position = Nodes.IndexOf(left);
-            Nodes.Insert(position + 1, middle);
             middle.Father = this;
 
-            Node? right = left.Right;
-            left.Right = middle;
-            middle.Left = left;
-            middle.Right = right;
-            if (right != null)
-                right.Left = middle;
-        }
+            if (Last == leftP)
+                Last = middle;
 
-        internal void Add(int position, Node middle)
-        {
-            Nodes.Insert(position, middle);
-            middle.Father = this;
+            if (First == rightP)
+                First = middle;
 
             Node? left = null;
             Node? right = null;
 
-            if (position > 0)
-            {
-                left = Nodes[position - 1];
-            }
-            else
-            {
-                Block1? leftBlock1 = Left;
-                if (leftBlock1 != null)
-                {
-                    left = leftBlock1.Nodes.Last();
-                }
-                else
-                {
-                    Block2? leftBlock2 = Father.Left;
-                    if (leftBlock2 != null)
-                    {
-                        leftBlock1 = leftBlock2.Blocks1.Last();
-                        left = leftBlock1.Nodes.Last();
-                    }
-                    else
-                    {
-                        Node? leftNode = Father.Node.Left;
-                        if (leftNode != null)
-                        {
-                            leftBlock2 = leftNode.Blocks2.Last();
-                            leftBlock1 = leftBlock2.Blocks1.Last();
-                            left = leftBlock1.Nodes.Last();
-                        }
-                    }
-                }
-            }
-            
-            if(left != null)
-            {
+            if (leftP != null)
+                left = leftP;
+            else if (Left != null)
+                left = Left.Last;
+            else if (Father.Left != null)
+                left = Father.Left.Last.Last;
+            else if (Father.Node.Left != null)
+                left = Father.Node.Left.Last.Last.Last;
+
+            if (left != null)
                 right = left.Right;
-            }
-            else
-            {
-                if (position < Nodes.Count - 1)
-                {
-                    right = Nodes[position + 1];
-                }
-                else
-                {
-                    Block1? rightBlock1 = Right;
-                    if (rightBlock1 != null)
-                    {
-                        right = rightBlock1.Nodes.First();
-                    }
-                    else
-                    {
-                        Block2? rightBlock2 = Father.Right;
-                        if (rightBlock2 != null)
-                        {
-                            rightBlock1 = rightBlock2.Blocks1.First();
-                            right = rightBlock1.Nodes.First();
-                        }
-                        else
-                        {
-                            Node? rightNode = Father.Node.Right;
-                            if (rightNode != null)
-                            {
-                                rightBlock2 = rightNode.Blocks2.First();
-                                rightBlock1 = rightBlock2.Blocks1.First();
-                                right = rightBlock1.Nodes.First();
-                            }
-                        }
-                    }
-                }
-            }
+            else if (rightP != null)
+                right = rightP;
+            else if (Right != null)
+                right = Right.First;
+            else if (Father.Right != null)
+                right = Father.Right.First.First;
+            else if (Father.Node.Right != null)
+                right = Father.Node.Right.First.First.First;
 
             if (left != null)
                 left.Right = middle;
             middle.Left = left;
             middle.Right = right;
-            if(right != null)
+            if (right != null)
                 right.Left = middle;
+
+            Degree++;
+            Father.Degree++;
+            Father.Node.Degree++;
+            Father.Node.Group.Degree++;
         }
 
         internal void Remove(Node middle)
         {
-            Nodes.Remove(middle);
+            if (middle == Last)
+                if (middle.Left?.Father == this)
+                    Last = middle.Left;
+                else
+                    Last = null;
+
+            if (middle == First)
+                if (middle.Right?.Father == this)
+                    First = middle.Right;
+                else
+                    First = null;
 
             Node? left = middle.Left;
             Node? right = middle.Right;
@@ -186,7 +119,12 @@ namespace FingerSearchTree
             if (right != null)
                 right.Left = left;
 
-            if(Nodes.Count == 0)
+            Degree--;
+            Father.Degree--;
+            Father.Node.Degree--;
+            Father.Node.Group.Degree--;
+
+            if (First == null || Last == null)
             {
                 Father.Remove(this);
                 if (Mate != null)
@@ -198,15 +136,15 @@ namespace FingerSearchTree
         {
             if (Mate == Right)
             {
-                Node transferredNode = Nodes.Last();
+                Node transferredNode = Last;
                 Remove(transferredNode);
-                Mate.Add(0, transferredNode);
+                Mate.Add(Mate.First?.Left, transferredNode, Mate.First);
             }
             else
             {
-                Node transferredNode = Nodes.First();
+                Node transferredNode = First;
                 Remove(transferredNode);
-                Mate.Add(Mate.Nodes.Count, transferredNode);
+                Mate.Add(Mate.Last, transferredNode, Mate.Last?.Right);
             }
         }
     }
