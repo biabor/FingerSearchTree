@@ -2,36 +2,36 @@
 {
     public static class Bounds
     {
-        private static Dictionary<int, long> a = new Dictionary<int, long>();
         private static Dictionary<int, long> b = new Dictionary<int, long>();
-        private static Dictionary<int, long> bp = new Dictionary<int, long>();
+        private static Dictionary<int, long> f = new Dictionary<int, long>();
+        private static Dictionary<int, long> a = new Dictionary<int, long>();
 
         public static long BiP(int level)
         {
-            if (a.TryGetValue(level, out long result))
+            if (b.TryGetValue(level, out long result))
                 return result;
             result = 128 * (long)Math.Pow(4, level);
-            a.Add(level, result);
+            b.Add(level, result);
             return result;
             //return (long)Math.Pow(2, Math.Pow(2, 2 * level + 3) - 2);
         }
 
         public static long Fi(int level)
         {
-            if (b.TryGetValue(level, out long result))
+            if (f.TryGetValue(level, out long result))
                 return result;
             result = 4 * (long)Math.Pow(2, level);
-            b.Add(level, result);
+            f.Add(level, result);
             return result;
             //return (long)Math.Pow(2, Math.Pow(2, 2 * level + 1));
         }
 
         public static long Ai(int level)
         {
-            if (bp.TryGetValue(level, out long result))
+            if (a.TryGetValue(level, out long result))
                 return result;
             result = (long)Math.Pow(2, level);
-            bp.Add(level, result);
+            a.Add(level, result);
             return result;
             //return (long)Math.Pow(2, Math.Pow(2, 2 * level));
         }

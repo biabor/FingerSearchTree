@@ -1,4 +1,4 @@
-﻿using System.Runtime.ExceptionServices;
+﻿using System.Text.RegularExpressions;
 
 namespace FingerSearchTree
 {
@@ -28,10 +28,8 @@ namespace FingerSearchTree
                     temp = temp.Left;
                 else if (temp.Right != null && temp.Right.ContainsValue(value))
                     temp = temp.Right;
-                else if (temp.FatherNode != null)
-                    temp = temp.FatherNode;
                 else
-                    break;
+                    temp = temp.FatherNode;
             }
 
             while (temp is Leaf == false)
@@ -60,19 +58,13 @@ namespace FingerSearchTree
             else if (8 * Bounds.Fi(left.FatherNode.Level) < left.FatherNode.Degree)
             {
                 Block2 firstBlock2 = left.Father.Father;
-                if (firstBlock2.Mate != null && firstBlock2.Mate.Degree == 0) firstBlock2.Mate = null;
+                if (firstBlock2.Mate != null && (firstBlock2.Mate.Degree == 0 || firstBlock2.First == null)) firstBlock2.Mate = null;
                 Block2? secondBlock2 = firstBlock2.Mate ?? firstBlock2.Right ?? firstBlock2.Left;
                 if (secondBlock2 != null)
-                {
                     if (secondBlock2.Degree <= firstBlock2.Degree)
-                    {
                         secondBlock2.Transfer(firstBlock2);
-                    }
-                    else 
-                    {
+                    else
                         firstBlock2.Transfer(secondBlock2);
-                    }
-                }
             }
 
             Rebalance(left.FatherNode);
@@ -86,7 +78,7 @@ namespace FingerSearchTree
 
             if (leaf.FatherNode.Degree <= 4 * Bounds.Fi(leaf.FatherNode.Level))
             {
-                if (leaf.FatherNode.Group.Left != null && (leaf.FatherNode.Group.hasOnlyOneBlock1 || leaf.FatherNode.Group.Left.hasOnlyOneBlock1) && leaf.FatherNode.Group.Left.Block2 == leaf.FatherNode.Group.Block2)
+                if (leaf.FatherNode.Group.Left != null && (leaf.FatherNode.Group.HasOnlyOneBlock1 || leaf.FatherNode.Group.Left.HasOnlyOneBlock1) && leaf.FatherNode.Group.Left.Block2 == leaf.FatherNode.Group.Block2)
                 {
                     if (leaf.FatherNode.Group.CanBeFused(leaf.FatherNode.Group.Left))
                         leaf.FatherNode.Group.Fuse(leaf.FatherNode.Group.Left);
@@ -96,7 +88,7 @@ namespace FingerSearchTree
                         leaf.FatherNode.Group.Share(leaf.FatherNode.Group.Left);
                     }
                 }
-                else if (leaf.FatherNode.Group.Right != null && (leaf.FatherNode.Group.hasOnlyOneBlock1 || leaf.FatherNode.Group.Right.hasOnlyOneBlock1) && leaf.FatherNode.Group.Right.Block2 == leaf.FatherNode.Group.Block2)
+                else if (leaf.FatherNode.Group.Right != null && (leaf.FatherNode.Group.HasOnlyOneBlock1 || leaf.FatherNode.Group.Right.HasOnlyOneBlock1) && leaf.FatherNode.Group.Right.Block2 == leaf.FatherNode.Group.Block2)
                 {
                     if (leaf.FatherNode.Group.CanBeFused(leaf.FatherNode.Group.Right))
                         leaf.FatherNode.Group.Fuse(leaf.FatherNode.Group.Right);
@@ -125,9 +117,7 @@ namespace FingerSearchTree
                 }
             }
 
-            if (leaf.FatherNode != null && leaf.FatherNode.Degree != 0)
-                Rebalance(leaf.FatherNode);
-            else { }
+            Rebalance(leaf.FatherNode);
 
             return leaf.Left as Leaf;
         }
@@ -260,22 +250,18 @@ namespace FingerSearchTree
                     Node sharedNode = father.Right.First;
                     bool wasFullRight = father.Right.IsFull;
                     father.Right.Remove(sharedNode);
-                    if (wasFullRight)
-                    {
-                        father.Right.Mate.TransferToMate();
-                    }
                     father.Add(father.Last, sharedNode, father.Last?.Right);
+                    if (wasFullRight)
+                        father.Right.Mate.TransferToMate();
                 }
                 else if (father.Left != null && father.Left.Mate != null)
                 {
                     Node sharedNode = father.Left.Last;
                     bool wasFullLeft = father.Left.IsFull;
                     father.Left.Remove(sharedNode);
-                    if (wasFullLeft)
-                    {
-                        father.Left.Mate.TransferToMate();
-                    }
                     father.Add(father.First?.Left, sharedNode, father.First);
+                    if (wasFullLeft)
+                        father.Left.Mate.TransferToMate();
                 }
             }
 
@@ -345,7 +331,7 @@ namespace FingerSearchTree
 
             r.Group.MultiBreak();
 
-            if (r.Group.hasOnlyOneBlock1)
+            if (r.Group.HasOnlyOneBlock1)
                 if (r.Group.Right != null && r.Group.Block2 == r.Group.Right.Block2)
                     if (r.Group.CanBeFused(r.Group.Right))
                         r.Group.Fuse(r.Group.Right);
@@ -357,7 +343,7 @@ namespace FingerSearchTree
                 else if (r.Group.Left != null && r.Group.Block2 == r.Group.Left.Block2)
                     if (r.Group.CanBeFused(r.Group.Left))
                         r.Group.Fuse(r.Group.Left);
-                    else if (r.Group.hasOnlyOneBlock1 || r.Group.Left.hasOnlyOneBlock1)
+                    else if (r.Group.HasOnlyOneBlock1 || r.Group.Left.HasOnlyOneBlock1)
                     {
                         r.Group.Left.MultiBreak();
                         r.Group.Share(r.Group.Left);

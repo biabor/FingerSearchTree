@@ -2,11 +2,11 @@
 {
     public class Block1
     {
-        public Block1? Left { get; set; }
+        public Block1 Left { get; set; }
 
-        public Block1? Right { get; set; }
+        public Block1 Right { get; set; }
 
-        public Block1? Mate { get; set; }
+        public Block1 Mate { get; set; }
 
         public Block2 Father { get; set; }
 
@@ -18,9 +18,9 @@
 
         public int Max { get => Last == null ? int.MinValue : Last.Max; }
 
-        public Node? First { get; set; }
+        public Node First { get; set; }
 
-        public Node? Last { get; set; }
+        public Node Last { get; set; }
 
         public Block1(Block2 father)
         {
@@ -61,8 +61,8 @@
             if (First == rightP)
                 First = middle;
 
-            Node? left = null;
-            Node? right = null;
+            Node left = null;
+            Node right = null;
 
             if (leftP != null)
                 left = leftP;
@@ -111,8 +111,8 @@
                 else
                     First = null;
 
-            Node? left = middle.Left;
-            Node? right = middle.Right;
+            Node left = middle.Left;
+            Node right = middle.Right;
 
             if (left != null)
                 left.Right = right;
@@ -124,7 +124,7 @@
             Father.Node.Degree--;
             Father.Node.Group.Degree--;
 
-            if (First == null || Last == null)
+            if (First == null)
             {
                 Father.Remove(this);
                 if (Mate != null)

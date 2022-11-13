@@ -176,18 +176,24 @@ namespace FingerSearchTreeForm
                 searchTimmer.Start();
                 lastLeaf = Tree.Search(lastLeaf, value);
                 searchTimmer.Stop();
-                if (lastLeaf.Value == value)
+                //if (lastLeaf.Value == value)
+                //{
+                if (lastLeaf.Value == int.MinValue)
+                    lastLeaf = lastLeaf.Right as Leaf;
+                try
                 {
                     deleteTimmer.Start();
                     lastLeaf = Tree.Delete(lastLeaf);
                     deleteTimmer.Stop();
                     elements.RemoveAt(index);
                 }
-                else
-                {
-                    TestFind(value);
-                    Test();
-                }
+                catch (Exception) { }
+                //}
+                //else
+                //{
+                //    TestFind(value);
+                //    Test();
+                //}
                 if (test_.Checked && only_.Checked == false && Test() == false)
                 {
                     inputOutput_.Text = "Something went wrong: Either a left/right pointer or there are too few/too many elements";

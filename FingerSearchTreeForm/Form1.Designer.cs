@@ -71,7 +71,7 @@
             this.add_.Name = "add_";
             this.add_.Size = new System.Drawing.Size(75, 23);
             this.add_.TabIndex = 1;
-            this.add_.Text = "Add";
+            this.add_.Text = "Insert";
             this.add_.UseVisualStyleBackColor = true;
             this.add_.Click += new System.EventHandler(this.add__Click);
             // 
@@ -97,7 +97,7 @@
             this.groupBox2.Size = new System.Drawing.Size(408, 72);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Testing Operations";
+            this.groupBox2.Text = "Bulk Testing Operations";
             // 
             // test_
             // 
@@ -123,7 +123,7 @@
             // 
             // random_
             // 
-            this.random_.Location = new System.Drawing.Point(288, 19);
+            this.random_.Location = new System.Drawing.Point(287, 19);
             this.random_.Name = "random_";
             this.random_.Size = new System.Drawing.Size(75, 23);
             this.random_.TabIndex = 2;
@@ -133,11 +133,11 @@
             // 
             // remove_
             // 
-            this.remove_.Location = new System.Drawing.Point(144, 19);
+            this.remove_.Location = new System.Drawing.Point(119, 19);
             this.remove_.Name = "remove_";
-            this.remove_.Size = new System.Drawing.Size(75, 23);
+            this.remove_.Size = new System.Drawing.Size(132, 23);
             this.remove_.TabIndex = 1;
-            this.remove_.Text = "Remove";
+            this.remove_.Text = "Insert and Remove";
             this.remove_.UseVisualStyleBackColor = true;
             this.remove_.Click += new System.EventHandler(this.remove__Click);
             // 
@@ -167,7 +167,7 @@
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "User Interface";
             this.groupBox1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();

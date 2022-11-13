@@ -2,11 +2,11 @@
 {
     public class Block2
     {
-        public Block2? Left { get; set; }
+        public Block2 Left { get; set; }
 
-        public Block2? Right { get; set; }
+        public Block2 Right { get; set; }
 
-        public Block2? Mate { get; set; }
+        public Block2 Mate { get; set; }
 
         public Node Node { get; set; }
 
@@ -63,8 +63,8 @@
             if (rightP == First)
                 First = middle;
 
-            Block1? left = null;
-            Block1? right = null;
+            Block1 left = null;
+            Block1 right = null;
 
             if (leftP != null)
                 left = leftP;
@@ -89,19 +89,13 @@
         internal void Remove(Block1 middle)
         {
             if (middle == Last)
-                if (middle.Left?.Father == this)
-                    Last = middle.Left;
-                else
-                    Last = null;
+                Last = middle.Left;
 
             if (middle == First)
-                if (middle.Right?.Father == this)
-                    First = middle.Right;
-                else
-                    First = null;
+                First = middle.Right;
 
-            Block1? left = middle.Left;
-            Block1? right = middle.Right;
+            Block1 left = middle.Left;
+            Block1 right = middle.Right;
 
             if (left != null)
                 left.Right = right;
@@ -123,9 +117,7 @@
         internal void TransferToMate()
         {
             if (Mate.Degree == 0)
-            {
                 Mate.Add(null, new Block1(Mate), null);
-            }
 
             if (Mate == Right)
             {
@@ -139,13 +131,9 @@
                 from.Remove(transferred);
 
                 if (wasFromFull)
-                {
                     if (from.Mate != null)
-                    {
                         from.Mate.TransferToMate();
-                    }
                     else if (from.Left != null)
-                    {
                         if (from.Left.Mate == null)
                         {
                             from.Mate = from.Left;
@@ -161,8 +149,6 @@
                             if (wasLeftFull)
                                 from.Left.Mate.TransferToMate();
                         }
-                    }
-                }
 
                 to.Add(to.First?.Left, transferred, to.First);
 
@@ -194,13 +180,9 @@
                 from.Remove(transferred);
 
                 if (wasFromFull)
-                {
                     if (from.Mate != null)
-                    {
                         from.Mate.TransferToMate();
-                    }
                     else if (from.Right != null)
-                    {
                         if (from.Right.Mate == null)
                         {
                             from.Mate = from.Right;
@@ -216,8 +198,6 @@
                             if (wasRightFull)
                                 from.Right.Mate.TransferToMate();
                         }
-                    }
-                }
 
                 to.Add(to.Last, transferred, to.Last?.Right);
 

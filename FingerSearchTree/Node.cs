@@ -2,13 +2,13 @@
 {
     public class Node
     {
-        public Node? Left { get; set; }
+        public Node Left { get; set; }
 
-        public Node? Right { get; set; }
+        public Node Right { get; set; }
 
-        public Block1? Father { get; set; }
+        public Block1 Father { get; set; }
 
-        public Node? FatherNode { get => Father?.Father.Node; }
+        public Node FatherNode { get => Father?.Father.Node; }
 
         public Block2 First { get; set; }
 
@@ -21,27 +21,21 @@
         {
             get
             {
-                if (group_.Valid && group_.Component.Valid)
-                    return group_;
-
                 if (group_.Valid && group_.Component.Valid == false)
                 {
                     group_.Component = new Component(this);
-                    return group_;
                 }
 
                 if (group_.Valid == false && group_.Component.Valid == false)
                 {
                     group_.Remove(this);
                     group_ = new Group(this);
-                    return group_;
                 }
 
                 if (group_.Valid == false && group_.Component.Valid)
                 {
                     group_.Remove(this);
                     group_ = new Group(this, group_.Component);
-                    return group_;
                 }
 
                 return group_;
@@ -117,8 +111,8 @@
             if (rightP == First)
                 First = middle;
 
-            Block2? left = null;
-            Block2? right = null;
+            Block2 left = null;
+            Block2 right = null;
 
             if (leftP != null)
                 left = leftP;
@@ -126,7 +120,7 @@
             if (left != null)
                 right = left.Right;
             else if (rightP != null)
-                right = rightP; 
+                right = rightP;
 
             if (left != null)
                 left.Right = middle;
@@ -143,19 +137,13 @@
         internal void Remove(Block2 middle)
         {
             if (middle == Last)
-                if (middle.Left?.Node == this)
-                    Last = middle.Left;
-                else
-                    Last = null;
+                Last = middle.Left;
 
             if (middle == First)
-                if (middle.Right?.Node == this)
-                    First = middle.Right;
-                else
-                    First = null;
+                First = middle.Right;
 
-            Block2? left = middle.Left;
-            Block2? right = middle.Right;
+            Block2 left = middle.Left;
+            Block2 right = middle.Right;
 
             if (left != null)
                 left.Right = right;
@@ -207,7 +195,7 @@
                 newNode.Add(newNode.First?.Left, lastBlock2, newNode.First);
             }
 
-            Group.Add(this,newNode);
+            Group.Add(this, newNode);
 
             return newNode;
         }
