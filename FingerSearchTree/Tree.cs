@@ -58,8 +58,7 @@ namespace FingerSearchTree
             else if (8 * Bounds.Fi(left.FatherNode.Level) < left.FatherNode.Degree)
             {
                 Block2 firstBlock2 = left.Father.Father;
-                if (firstBlock2.Mate != null && (firstBlock2.Mate.Degree == 0 || firstBlock2.First == null)) firstBlock2.Mate = null;
-                Block2? secondBlock2 = firstBlock2.Mate ?? firstBlock2.Right ?? firstBlock2.Left;
+                Block2? secondBlock2 = firstBlock2.Right ?? firstBlock2.Left;
                 if (secondBlock2 != null)
                     if (secondBlock2.Degree <= firstBlock2.Degree)
                         secondBlock2.Transfer(firstBlock2);

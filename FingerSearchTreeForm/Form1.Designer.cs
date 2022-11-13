@@ -102,8 +102,6 @@
             // test_
             // 
             this.test_.AutoSize = true;
-            this.test_.Checked = true;
-            this.test_.CheckState = System.Windows.Forms.CheckState.Checked;
             this.test_.Location = new System.Drawing.Point(8, 48);
             this.test_.Name = "test_";
             this.test_.Size = new System.Drawing.Size(79, 19);

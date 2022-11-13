@@ -71,10 +71,23 @@
                 what.Father.Remove(what);
                 Tree.DeleteNode(fatherNode);
 
+                Block1? whatNeighbour;
                 if (left)
+                {
                     to.Add(to.Last, what, to.Last?.Right);
+                    whatNeighbour = what.Left;
+                }
                 else
+                {
                     to.Add(to.First?.Left, what, to.First);
+                    whatNeighbour = what.Right;
+                }
+
+                if (whatNeighbour != null && ((what.IsFull && whatNeighbour.IsFull == false && whatNeighbour.Mate == null) || (what.IsFull == false && whatNeighbour.IsFull && whatNeighbour.Mate == null)))
+                {
+                    what.Mate = whatNeighbour;
+                    whatNeighbour.Mate = what;
+                }
 
                 if (to.Pending && to.IsFull)
                 {
@@ -95,8 +108,6 @@
                 if (what.Mate != null && what.Pending == false)
                     what.Mate.Mate = null;
                 what.Mate = null;
-                what.Right = null;
-                what.Left = null;
 
                 Block2? whatNeighbour;
                 if (left)

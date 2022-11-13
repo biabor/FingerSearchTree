@@ -116,7 +116,7 @@
 
         internal void TransferToMate()
         {
-            if (Mate.Degree == 0)
+            if (Mate.First == null || Mate.Last == null)
                 Mate.Add(null, new Block1(Mate), null);
 
             if (Mate == Right)

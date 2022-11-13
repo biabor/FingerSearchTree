@@ -124,7 +124,7 @@
             Father.Node.Degree--;
             Father.Node.Group.Degree--;
 
-            if (First == null)
+            if (First == null || Last == null)
             {
                 Father.Remove(this);
                 if (Mate != null)

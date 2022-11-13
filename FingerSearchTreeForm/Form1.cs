@@ -133,82 +133,70 @@ namespace FingerSearchTreeForm
         private void remove__Click(object sender, EventArgs e)
         {
             Cursor = Cursors.WaitCursor;
-            //try
-            //{
-            var searchTimmer = new Stopwatch();
-            var insertTimmer = new Stopwatch();
-            var deleteTimmer = new Stopwatch();
-
-            int howMany = int.Parse(inputOutput_.Text);
-
-            Random rnd = new Random();
-            int value = int.MaxValue;
-
-            while (elements.Count < howMany)
+            try
             {
-                searchTimmer.Start();
-                lastLeaf = Tree.Search(lastLeaf, value);
-                searchTimmer.Stop();
-                if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
+                var searchTimmer = new Stopwatch();
+                var insertTimmer = new Stopwatch();
+                var deleteTimmer = new Stopwatch();
+
+                int howMany = int.Parse(inputOutput_.Text);
+
+                Random rnd = new Random();
+                int value = rnd.Next();
+
+                while (elements.Count < howMany)
                 {
-                    insertTimmer.Start();
-                    lastLeaf = Tree.Insert(lastLeaf, value);
-                    insertTimmer.Stop();
-                    elements.Add(value);
+                    searchTimmer.Start();
+                    lastLeaf = Tree.Search(lastLeaf, value);
+                    searchTimmer.Stop();
+                    if (lastLeaf.Value < value && (lastLeaf.Right == null || (lastLeaf.Right as Leaf).Value > value))
+                    {
+                        insertTimmer.Start();
+                        lastLeaf = Tree.Insert(lastLeaf, value);
+                        insertTimmer.Stop();
+                        elements.Add(value);
+                    }
+                    value = rnd.Next();
+                    if (test_.Checked && only_.Checked == false && Test() == false)
+                    {
+                        inputOutput_.Text = "Something went wrong: Either a left/right pointer or there are too few/too many elements";
+                        return;
+                    }
                 }
-                value = rnd.Next();
-                if (test_.Checked && only_.Checked == false && Test() == false)
+
+                if (test_.Checked && only_.Checked && Test() == false)
                 {
                     inputOutput_.Text = "Something went wrong: Either a left/right pointer or there are too few/too many elements";
-                    return;
                 }
-            }
 
-            if (test_.Checked && only_.Checked && Test() == false)
-            {
-                inputOutput_.Text = "Something went wrong: Either a left/right pointer or there are too few/too many elements";
-            }
-
-            while (elements.Count != 0)
-            {
-                int index = rnd.Next(elements.Count);
-                value = elements[index];
-                searchTimmer.Start();
-                lastLeaf = Tree.Search(lastLeaf, value);
-                searchTimmer.Stop();
-                //if (lastLeaf.Value == value)
-                //{
-                if (lastLeaf.Value == int.MinValue)
-                    lastLeaf = lastLeaf.Right as Leaf;
-                try
+                while (elements.Count != 0)
                 {
+                    int index = rnd.Next(elements.Count);
+                    value = elements[index];
+                    searchTimmer.Start();
+                    lastLeaf = Tree.Search(lastLeaf, value);
+                    searchTimmer.Stop();
+                    if (lastLeaf.Value == int.MinValue)
+                        lastLeaf = lastLeaf.Right as Leaf;
                     deleteTimmer.Start();
                     lastLeaf = Tree.Delete(lastLeaf);
                     deleteTimmer.Stop();
                     elements.RemoveAt(index);
+                    if (test_.Checked && only_.Checked == false && Test() == false)
+                    {
+                        inputOutput_.Text = "Something went wrong: Either a left/right pointer or there are too few/too many elements";
+                        return;
+                    }
                 }
-                catch (Exception) { }
-                //}
-                //else
-                //{
-                //    TestFind(value);
-                //    Test();
-                //}
-                if (test_.Checked && only_.Checked == false && Test() == false)
+                if (test_.Checked && only_.Checked && Test() == false)
                 {
                     inputOutput_.Text = "Something went wrong: Either a left/right pointer or there are too few/too many elements";
-                    return;
                 }
             }
-            if (test_.Checked && only_.Checked && Test() == false)
+            catch (Exception ex)
             {
-                inputOutput_.Text = "Something went wrong: Either a left/right pointer or there are too few/too many elements";
+                inputOutput_.Text = ex.Message;
             }
-            //}
-            //catch (Exception ex)
-            //{
-            //    inputOutput_.Text = ex.Message;
-            //}
             Cursor = Cursors.Default;
         }
 
